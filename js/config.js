@@ -7,7 +7,7 @@ export const APP = {
   name: 'Workout Tracker',
   shortName: 'Workout',
   tagline: 'Training log',
-  version: '1.1.0',
+  version: '1.1.1',
   schemaVersion: 4
 };
 
@@ -53,7 +53,8 @@ export const IMAGE_SOURCE = {
   attribution: 'ExerciseDB by AscendAPI',
   license: 'Free tier — see ascendapi.com terms',
   pageSize: 100,
-  maxPages: 30
+  maxPages: 60,
+  requestSpacingMs: 80
 };
 
 export const DEFAULT_SETTINGS = {

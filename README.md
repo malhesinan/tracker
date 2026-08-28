@@ -146,6 +146,11 @@ Export regularly.
 
 ## Changelog
 
+**1.1.1**
+- Fixed the image download stopping after the first page when the endpoint returns fewer exercises than requested — this was capping matches at a handful
+- Added a per-exercise search fallback for anything the catalogue misses, which gives up quickly if the endpoint does not support search
+- Settings now reports how many exercises came back from the catalogue, not just how many matched
+
 **1.1.0**
 - Renamed to Workout Tracker; new dumbbell icon across the manifest, favicon and Home Screen
 - Light theme: white surfaces, near-black type, a single orange (`#F26228`) for active, complete and record states

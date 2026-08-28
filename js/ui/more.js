@@ -122,9 +122,14 @@ function imagesCard(ctx, settings) {
 
   const status = el('div', { class: 'small muted', style: 'margin:14px 0 10px' , text:
     info.present
-      ? `${info.count} exercises matched · downloaded ${longDate(info.fetchedAt)}`
+      ? `${info.count} of ${allExercises().length} exercises matched · ${info.remoteCount} downloaded from the catalogue · ${longDate(info.fetchedAt)}`
       : 'No images downloaded yet.' });
   card.appendChild(status);
+
+  if (info.present && info.count < allExercises().length * 0.5) {
+    card.appendChild(el('div', { class: 'hint', style: 'margin:-4px 0 10px', text:
+      `A low match count usually means the catalogue download was cut short — ${info.remoteCount} exercises came back. Refreshing often fixes it. Any exercise without a match keeps its initials tile, and you can paste your own image URL into it from the exercise library.` }));
+  }
 
   const btn = el('button', {
     class: 'btn btn-block ' + (info.present ? 'btn-outline' : 'btn-primary'),
@@ -135,10 +140,10 @@ function imagesCard(ctx, settings) {
     btn.disabled = true;
     btn.textContent = 'DOWNLOADING…';
     try {
-      const result = await syncImages(allExercises(), ({ fetched }) => {
-        btn.textContent = `DOWNLOADING… ${fetched}`;
+      const result = await syncImages(allExercises(), ({ fetched, searching }) => {
+        btn.textContent = searching ? `MATCHING… ${searching}`.slice(0, 34) : `DOWNLOADING… ${fetched}`;
       });
-      toast(`Matched ${result.count} of ${allExercises().length} exercises`);
+      toast(`Matched ${result.count} of ${allExercises().length} · ${result.remoteCount} in catalogue`);
       ctx.rerender();
     } catch (err) {
       btn.disabled = false;

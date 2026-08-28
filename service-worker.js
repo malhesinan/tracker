@@ -6,7 +6,7 @@
    refresh so a new deploy is picked up on the next launch.
    ========================================================================== */
 
-const VERSION = 'workout-tracker-v1.1.0';
+const VERSION = 'workout-tracker-v1.1.1';
 const SHELL = [
   './',
   './index.html',
