@@ -7,7 +7,7 @@
 
 import { storage } from './storage.js';
 import { BUILTIN_EXERCISES } from './data/exercises.js';
-import { buildSeedProgram } from './data/seed.js';
+import { SEED_BUILDERS } from './data/seed.js';
 import { uid, clone } from './util.js';
 import { plannedSetCount, defaultSetValues, setHasValue, setVolume, estimated1RM } from './prescription.js';
 import { APP } from './config.js';
@@ -31,18 +31,42 @@ export function initStore() {
   state.settings = storage.loadSettings();
   state.meta = storage.loadMeta();
 
-  if (state.settings.firstRun && state.programs.length === 0) {
-    state.programs = [buildSeedProgram()];
-    storage.savePrograms(state.programs);
+  if (!state.meta.schemaVersion) {
+    state.meta = { schemaVersion: APP.schemaVersion, createdAt: Date.now(), seeded: [] };
+  }
+  applySeeds();
+  if (state.settings.firstRun) {
     state.settings.firstRun = false;
     storage.saveSettings(state.settings);
   }
-  if (!state.meta.schemaVersion) {
-    state.meta = { schemaVersion: APP.schemaVersion, createdAt: Date.now() };
-    storage.saveMeta(state.meta);
-  }
   rebuildExerciseIndex();
   return state;
+}
+
+/**
+ * Add any built-in programme that has never been seeded on this device.
+ * Each carries a stable seedId recorded in meta.seeded, so a programme you
+ * delete stays deleted rather than reappearing on the next launch.
+ */
+function applySeeds() {
+  const seeded = Array.isArray(state.meta.seeded) ? state.meta.seeded : [];
+  let added = 0;
+
+  SEED_BUILDERS.forEach(({ seedId, build }) => {
+    if (seeded.includes(seedId)) return;
+    if (state.programs.some((p) => p.seedId === seedId)) { seeded.push(seedId); return; }
+    const program = build();
+    // The first programme on a blank device becomes the active one.
+    if (!state.programs.some((p) => p.status === 'active')) program.status = 'active';
+    else if (program.status === 'active') program.status = 'draft';
+    state.programs.push(program);
+    seeded.push(seedId);
+    added += 1;
+  });
+
+  state.meta = { ...state.meta, schemaVersion: APP.schemaVersion, seeded };
+  storage.saveMeta(state.meta);
+  if (added) storage.savePrograms(state.programs);
 }
 
 export function reloadFromStorage() {

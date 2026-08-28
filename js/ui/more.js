@@ -3,11 +3,12 @@
    ========================================================================== */
 
 import { el, download, longDate, num, mmss } from '../util.js';
-import { APP } from '../config.js';
+import { APP, IMAGE_SOURCE } from '../config.js';
 import { storage, storageIsPersistent } from '../storage.js';
 import {
-  getSettings, updateSettings, reloadFromStorage, completedSessions, getPrograms
+  getSettings, updateSettings, reloadFromStorage, completedSessions, getPrograms, allExercises
 } from '../store.js';
+import { syncImages, imageCacheInfo, clearImages } from '../images.js';
 import { setLabel } from '../prescription.js';
 import { sessionTotals, summaryStats } from '../stats.js';
 import {
@@ -50,6 +51,10 @@ export function renderMore(root, ctx) {
     (v) => updateSettings({ restVibrate: v }),
     'Where the browser supports it.'));
   screen.appendChild(restCard);
+
+  /* ------------------------------------------------------- exercise images */
+  screen.appendChild(sectionHead('Exercise images'));
+  screen.appendChild(imagesCard(ctx, s));
 
   /* ------------------------------------------------------------ library */
   screen.appendChild(sectionHead('Library'));
@@ -102,8 +107,58 @@ export function renderMore(root, ctx) {
   screen.appendChild(install);
 
   screen.appendChild(el('div', { class: 'attribution', style: 'margin-top:22px' }, [
-    el('div', { text: 'Exercise images are optional. Nothing is fetched from a third party unless you add a URL yourself, and any attribution and licence you enter is stored alongside it.' })
+    el('div', { text: `Exercise images: ${IMAGE_SOURCE.attribution}. Images are linked from their CDN, never rehosted. Any image you add yourself is stored with the attribution and licence you enter.` })
   ]));
+}
+
+/* ------------------------------------------------------ exercise images */
+function imagesCard(ctx, settings) {
+  const card = el('div', { class: 'card' });
+  const info = imageCacheInfo();
+
+  card.appendChild(switchRow('Show exercise images', settings.exerciseImages !== false,
+    (v) => { updateSettings({ exerciseImages: v }); },
+    'Demonstration images beside each exercise. Your own images always show.'));
+
+  const status = el('div', { class: 'small muted', style: 'margin:14px 0 10px' , text:
+    info.present
+      ? `${info.count} exercises matched · downloaded ${longDate(info.fetchedAt)}`
+      : 'No images downloaded yet.' });
+  card.appendChild(status);
+
+  const btn = el('button', {
+    class: 'btn btn-block ' + (info.present ? 'btn-outline' : 'btn-primary'),
+    type: 'button',
+    text: info.present ? 'REFRESH IMAGES' : 'DOWNLOAD IMAGES'
+  });
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    btn.textContent = 'DOWNLOADING…';
+    try {
+      const result = await syncImages(allExercises(), ({ fetched }) => {
+        btn.textContent = `DOWNLOADING… ${fetched}`;
+      });
+      toast(`Matched ${result.count} of ${allExercises().length} exercises`);
+      ctx.rerender();
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = info.present ? 'REFRESH IMAGES' : 'DOWNLOAD IMAGES';
+      status.textContent = `Could not reach the image service (${err.message}). Everything else still works.`;
+      toast('Image download failed', 'warn');
+    }
+  });
+  card.appendChild(btn);
+
+  if (info.present) {
+    const clear = el('button', { class: 'btn btn-block btn-ghost', type: 'button', text: 'REMOVE DOWNLOADED IMAGES', style: 'margin-top:8px' });
+    clear.addEventListener('click', () => { clearImages(); toast('Images removed'); ctx.rerender(); });
+    card.appendChild(clear);
+  }
+
+  card.appendChild(el('div', { class: 'hint', style: 'margin-top:12px', text:
+    `Images come from ${IMAGE_SOURCE.name} over its free public endpoint. Only the links are stored — nothing is copied onto this device until you view it, and each image is then cached for offline use. The app works normally with this off.` }));
+
+  return card;
 }
 
 /* ------------------------------------------------------------- helpers */
@@ -144,7 +199,7 @@ function backupHint() {
 function exportJSON() {
   const data = storage.exportAll();
   const stamp = new Date().toISOString().slice(0, 10);
-  download(`redline-backup-${stamp}.json`, JSON.stringify(data, null, 2));
+  download(`workout-tracker-backup-${stamp}.json`, JSON.stringify(data, null, 2));
   toast('Export ready');
 }
 
@@ -188,7 +243,7 @@ function exportCSV() {
   }).join(',')).join('\n');
 
   const stamp = new Date().toISOString().slice(0, 10);
-  download(`redline-history-${stamp}.csv`, csv, 'text/csv');
+  download(`workout-tracker-history-${stamp}.csv`, csv, 'text/csv');
   toast(`Exported ${rows.length - 1} sets`);
 }
 
@@ -312,7 +367,7 @@ function showInstall() {
     ['1', 'Open the app in Safari', 'Chrome on iOS cannot install web apps.'],
     ['2', 'Tap the Share button', 'The square with an arrow, in the toolbar.'],
     ['3', 'Choose "Add to Home Screen"', 'Scroll down the share sheet if you do not see it.'],
-    ['4', 'Tap Add', 'REDLINE now launches full screen with no browser chrome, and works with no signal.']
+    ['4', 'Tap Add', 'Workout Tracker now launches full screen with no browser chrome, and works with no signal.']
   ];
   steps.forEach(([n, title, hint]) => {
     body.appendChild(el('div', { class: 'row', style: 'align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--border)' }, [

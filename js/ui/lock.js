@@ -22,10 +22,8 @@ export function showLock(onUnlock) {
   const err = el('div', { class: 'lock-err', role: 'alert', text: '' });
 
   const top = el('div', { class: 'lock-top' }, [
-    el('div', { class: 'lock-mark' }, [
-      el('span', { text: 'RED' }),
-      el('b', { text: 'LINE' })
-    ]),
+    el('img', { class: 'lock-logo', src: './icons/icon-192.png', alt: '', width: '64', height: '64' }),
+    el('div', { class: 'lock-mark', text: 'WORKOUT TRACKER' }),
     el('div', { class: 'lock-sub', text: 'Enter passcode' }),
     dots,
     err

@@ -6,7 +6,7 @@
    or a cloud backend without changing a single screen.
    ========================================================================== */
 
-import { STORAGE_KEYS, DEFAULT_SETTINGS, APP } from './config.js';
+import { STORAGE_KEYS, LEGACY_KEYS, DEFAULT_SETTINGS, APP } from './config.js';
 
 /* --- adapter ------------------------------------------------------------- */
 const memory = new Map();
@@ -14,7 +14,7 @@ let usingMemory = false;
 
 function probe() {
   try {
-    const k = '__redline_probe__';
+    const k = '__wt_probe__';
     localStorage.setItem(k, '1');
     localStorage.removeItem(k);
     return true;
@@ -40,6 +40,25 @@ const adapter = {
 };
 
 export const storageIsPersistent = () => !usingMemory;
+
+/* --- one-time migration from the 1.0 key prefix ------------------------- */
+function migrateLegacyKeys() {
+  try {
+    if (adapter.get(STORAGE_KEYS.meta)) return;          // already on the new keys
+    let moved = 0;
+    Object.keys(LEGACY_KEYS).forEach((name) => {
+      const old = adapter.get(LEGACY_KEYS[name]);
+      if (old !== null && old !== undefined) {
+        adapter.set(STORAGE_KEYS[name], old);
+        moved += 1;
+      }
+    });
+    if (moved) console.info(`[storage] migrated ${moved} keys from the previous app name`);
+  } catch (e) {
+    console.warn('[storage] migration skipped', e);
+  }
+}
+migrateLegacyKeys();
 
 /* --- json helpers -------------------------------------------------------- */
 function read(key, fallback) {
@@ -79,8 +98,12 @@ export const storage = {
   loadSettings()            { return { ...DEFAULT_SETTINGS, ...read(STORAGE_KEYS.settings, {}) }; },
   saveSettings(settings)    { return write(STORAGE_KEYS.settings, settings); },
 
-  loadMeta()                { return read(STORAGE_KEYS.meta, { schemaVersion: APP.schemaVersion, createdAt: Date.now() }); },
+  loadMeta()                { return read(STORAGE_KEYS.meta, { schemaVersion: APP.schemaVersion, createdAt: Date.now(), seeded: [] }); },
   saveMeta(meta)            { return write(STORAGE_KEYS.meta, meta); },
+
+  loadImageCache()          { return read(STORAGE_KEYS.imageCache, null); },
+  saveImageCache(cache)     { return write(STORAGE_KEYS.imageCache, cache); },
+  clearImageCache()         { adapter.remove(STORAGE_KEYS.imageCache); },
 
   /* Unlock state. sessionStorage by default so the passcode is asked again on
      a fresh launch; localStorage only if the user opts in. */
@@ -115,7 +138,7 @@ export const storage = {
   /* --- export / import -------------------------------------------------- */
   exportAll() {
     return {
-      app: 'REDLINE',
+      app: 'Workout Tracker',
       schemaVersion: APP.schemaVersion,
       exportedAt: new Date().toISOString(),
       programs: storage.loadPrograms(),
@@ -137,7 +160,7 @@ export const storage = {
     if (!payload || typeof payload !== 'object') {
       return { ok: false, errors: ['The file is not valid JSON object data.'], warnings, counts: {} };
     }
-    if (payload.app && payload.app !== 'REDLINE') {
+    if (payload.app && payload.app !== 'Workout Tracker' && payload.app !== 'REDLINE') {
       warnings.push(`File reports app "${payload.app}". Importing anyway.`);
     }
     const arrays = ['programs', 'exercises', 'sessions'];
@@ -212,5 +235,6 @@ export const storage = {
     adapter.remove(STORAGE_KEYS.sessions);
     adapter.remove(STORAGE_KEYS.settings);
     adapter.remove(STORAGE_KEYS.meta);
+    adapter.remove(STORAGE_KEYS.imageCache);
   }
 };

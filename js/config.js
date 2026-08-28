@@ -4,10 +4,11 @@
    ========================================================================== */
 
 export const APP = {
-  name: 'REDLINE',
-  tagline: 'Training OS',
-  version: '1.0.0',
-  schemaVersion: 3
+  name: 'Workout Tracker',
+  shortName: 'Workout',
+  tagline: 'Training log',
+  version: '1.1.0',
+  schemaVersion: 4
 };
 
 /* The lock-screen passcode.
@@ -16,14 +17,43 @@ export const APP = {
    It stops someone picking up an unlocked phone and poking around. */
 export const PASSCODE = '9977';
 
+const PREFIX = 'wt.';
+
 export const STORAGE_KEYS = {
-  programs: 'redline.programs',
+  programs:   PREFIX + 'programs',
+  exercises:  PREFIX + 'exercises',
+  sessions:   PREFIX + 'sessions',
+  settings:   PREFIX + 'settings',
+  meta:       PREFIX + 'meta',
+  backup:     PREFIX + 'backup',
+  unlock:     PREFIX + 'unlock',
+  imageCache: PREFIX + 'imagecache'
+};
+
+/* Keys used by version 1.0 (app name "REDLINE"). Migrated once, then ignored. */
+export const LEGACY_KEYS = {
+  programs:  'redline.programs',
   exercises: 'redline.exercises',
-  sessions: 'redline.sessions',
-  settings: 'redline.settings',
-  meta: 'redline.meta',
-  backup: 'redline.backup',
-  unlock: 'redline.unlock'
+  sessions:  'redline.sessions',
+  settings:  'redline.settings',
+  meta:      'redline.meta',
+  backup:    'redline.backup',
+  unlock:    'redline.unlock'
+};
+
+/* ---------------------------------------------------------------------------
+   Exercise images — ExerciseDB free tier, operated by AscendAPI.
+   No API key, no sign-up. Images are served from their CDN and cached by the
+   service worker after first view. The app works fully without any of this.
+   ------------------------------------------------------------------------ */
+export const IMAGE_SOURCE = {
+  name: 'ExerciseDB (AscendAPI)',
+  endpoint: 'https://oss.exercisedb.dev/api/v1/exercises',
+  homepage: 'https://ascendapi.com',
+  attribution: 'ExerciseDB by AscendAPI',
+  license: 'Free tier — see ascendapi.com terms',
+  pageSize: 100,
+  maxPages: 30
 };
 
 export const DEFAULT_SETTINGS = {
@@ -38,6 +68,7 @@ export const DEFAULT_SETTINGS = {
   weekStartsOn: 0,             // 0 = Sunday
   confirmDeletes: true,
   rememberUnlock: false,       // stay unlocked on this device
+  exerciseImages: true,        // fetch demonstration images from ExerciseDB
   firstRun: true
 };
 

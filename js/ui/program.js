@@ -21,8 +21,9 @@ import {
 } from '../prescription.js';
 import {
   icon, iconButton, sheet, confirmSheet, promptSheet, toast, topbar,
-  field, segmented, emptyState, switchRow
+  field, segmented, emptyState, switchRow, thumb, heroImage
 } from './components.js';
+import { imageFor } from '../images.js';
 
 /* ========================================================== PROGRAMME LIST */
 export function renderProgramList(root, ctx, params = {}) {
@@ -456,11 +457,7 @@ export function openPicker(program, day, ctx, onPick) {
 
 function exerciseRow(ex, onPick) {
   const item = el('button', { class: 'list-item', type: 'button' }, [
-    el('div', { class: 'thumb' }, [
-      ex.image && ex.image.url
-        ? el('img', { src: ex.image.url, alt: '', loading: 'lazy' })
-        : el('span', { text: ex.name.slice(0, 2).toUpperCase() })
-    ]),
+    thumb(ex, imageFor(ex, null, getSettings())),
     el('div', { class: 'grow' }, [
       el('div', { class: 'h3', text: ex.name }),
       el('div', { class: 'tiny dim', text: `${ex.category} · ${ex.equipment}${ex.builtin === false ? ' · CUSTOM' : ''}` })
@@ -480,7 +477,7 @@ export function prescriptionSheet(program, day, rxInput, ctx, isNew = false) {
 
   /* --- exercise line --- */
   const exLine = el('button', { class: 'list-item', type: 'button', style: 'border:1px solid var(--border);border-radius:var(--r);margin-bottom:20px' }, [
-    el('div', { class: 'thumb' }, [el('span', { text: ex.name.slice(0, 2).toUpperCase() })]),
+    thumb(ex, imageFor(ex, rx, getSettings())),
     el('div', { class: 'grow' }, [
       el('div', { class: 'h3', text: rx.displayName || ex.name }),
       el('div', { class: 'tiny dim', text: `${ex.category} · ${rx.equipmentOverride || ex.equipment}` })
@@ -697,14 +694,8 @@ export function exerciseDetailSheet(ex, opts = {}) {
   const { onAdd, onEdit } = opts;
   const body = el('div', {});
 
-  body.appendChild(el('div', { class: 'ex-image' }, [
-    ex.image && ex.image.url
-      ? el('img', { src: ex.image.url, alt: ex.name })
-      : el('div', { class: 'ph' }, [
-        el('div', { class: 'glyph', text: ex.name.slice(0, 2).toUpperCase() }),
-        el('div', { class: 'tiny', style: 'margin-top:6px', text: 'NO IMAGE' })
-      ])
-  ]));
+  const image = imageFor(ex, null, getSettings());
+  body.appendChild(heroImage(ex, image));
 
   body.appendChild(el('h2', { class: 'h1', text: ex.name }));
   body.appendChild(el('div', { class: 'eyebrow', style: 'margin-top:8px', text: `${ex.category} · ${ex.equipment}` }));
@@ -730,8 +721,8 @@ export function exerciseDetailSheet(ex, opts = {}) {
     ex.coachingCues.forEach((c) => body.appendChild(el('div', { class: 'cue', style: 'margin-top:10px', text: c })));
   }
 
-  if (ex.image && ex.image.attribution) {
-    body.appendChild(el('div', { class: 'attribution', style: 'margin-top:20px', text: `Image: ${ex.image.attribution}${ex.image.license ? ` · ${ex.image.license}` : ''}` }));
+  if (image && image.attribution) {
+    body.appendChild(el('div', { class: 'attribution', style: 'margin-top:20px', text: `Image: ${image.attribution}${image.license ? ` · ${image.license}` : ''}` }));
   }
 
   const actions = [{ label: 'Close', onClick: ({ close }) => close() }];

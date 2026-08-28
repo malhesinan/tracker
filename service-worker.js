@@ -6,7 +6,7 @@
    refresh so a new deploy is picked up on the next launch.
    ========================================================================== */
 
-const VERSION = 'redline-v1.0.0';
+const VERSION = 'workout-tracker-v1.1.0';
 const SHELL = [
   './',
   './index.html',
@@ -19,6 +19,7 @@ const SHELL = [
   './js/store.js',
   './js/stats.js',
   './js/prescription.js',
+  './js/images.js',
   './js/data/exercises.js',
   './js/data/seed.js',
   './js/ui/components.js',
@@ -32,7 +33,8 @@ const SHELL = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
-  './icons/apple-touch-icon.png'
+  './icons/apple-touch-icon.png',
+  './icons/favicon-64.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -90,16 +92,25 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Third-party (user-supplied exercise images): network, fall back to cache.
-  event.respondWith(
-    fetch(request)
-      .then((response) => {
-        if (response && response.status === 200 && response.type === 'basic') {
+  /* Third-party media (exercise images from the ExerciseDB CDN, or any image
+     URL you added yourself). Cache-first so a workout you have opened before
+     still shows its images with no signal; cross-origin responses are cached
+     whether they come back as CORS or opaque. */
+  const isMedia = /\.(gif|png|jpe?g|webp|avif)(\?|$)/i.test(url.pathname + url.search);
+
+  if (isMedia) {
+    event.respondWith(
+      caches.match(request).then((cached) => cached || fetch(request).then((response) => {
+        if (response && (response.ok || response.type === 'opaque')) {
           const copy = response.clone();
           caches.open(VERSION).then((cache) => cache.put(request, copy));
         }
         return response;
-      })
-      .catch(() => caches.match(request))
-  );
+      }).catch(() => cached))
+    );
+    return;
+  }
+
+  // Anything else third-party (the image catalogue call): network only.
+  event.respondWith(fetch(request).catch(() => caches.match(request)));
 });

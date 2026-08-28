@@ -15,7 +15,8 @@ import {
   prescriptionLabel, targetLabel, setsLabel, logFields, setLabel, setHasValue
 } from '../prescription.js';
 import { sessionTotals } from '../stats.js';
-import { icon, iconButton, sheet, confirmSheet, toast, topbar, field, segmented } from './components.js';
+import { icon, iconButton, sheet, confirmSheet, toast, topbar, field, segmented, thumb } from './components.js';
+import { imageFor } from '../images.js';
 import { startRest, stop as stopRest } from './resttimer.js';
 
 let openLogId = null;
@@ -94,12 +95,15 @@ function exerciseCard(session, log, index, ctx, screen) {
 
   const card = el('div', { class: `ex-card ${isOpen ? 'open' : ''} ${allDone ? 'done' : ''}` });
 
+  const image = imageFor(ex, rx, getSettings());
+
   const head = el('button', {
     class: 'ex-head',
     type: 'button',
     'aria-expanded': isOpen ? 'true' : 'false'
   }, [
     el('div', { class: 'idx', text: String(index + 1).padStart(2, '0') }),
+    image ? thumb(ex, image, true) : null,
     el('div', { class: 'grow' }, [
       el('div', { class: 'nm', text: log.name }),
       el('div', { class: 'meta', text: `${ex.category} · ${log.equipment}` })

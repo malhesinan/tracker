@@ -235,6 +235,42 @@ export function emptyState({ title, message, actionLabel, onAction }) {
   ]);
 }
 
+/* ------------------------------------------------------------ exercise art */
+
+/**
+ * Square thumbnail for an exercise. Falls back to the initials tile when no
+ * image is available, and again if the image fails to load.
+ */
+export function thumb(exercise, image, small = false) {
+  const node = el('div', { class: `thumb ${small ? 'sm' : ''}` });
+  const initials = el('span', { text: (exercise.name || '?').slice(0, 2).toUpperCase() });
+  if (image && image.url) {
+    const img = el('img', { src: image.url, alt: '', loading: 'lazy', decoding: 'async' });
+    img.addEventListener('error', () => { node.innerHTML = ''; node.appendChild(initials); });
+    node.appendChild(img);
+  } else {
+    node.appendChild(initials);
+  }
+  return node;
+}
+
+/** Large image block for the exercise detail view. */
+export function heroImage(exercise, image) {
+  const node = el('div', { class: 'ex-image' });
+  const placeholder = () => el('div', { class: 'ph' }, [
+    el('div', { class: 'glyph', text: (exercise.name || '?').slice(0, 2).toUpperCase() }),
+    el('div', { class: 'tiny', style: 'margin-top:6px', text: 'NO IMAGE' })
+  ]);
+  if (image && image.url) {
+    const img = el('img', { src: image.url, alt: exercise.name, loading: 'lazy', decoding: 'async' });
+    img.addEventListener('error', () => { node.innerHTML = ''; node.appendChild(placeholder()); });
+    node.appendChild(img);
+  } else {
+    node.appendChild(placeholder());
+  }
+  return node;
+}
+
 /* ---------------------------------------------------------------- charts */
 /** Small line chart. points = [{x:timestamp, y:number}] */
 export function lineChart(points, { height = 150, format = (v) => String(Math.round(v)) } = {}) {
@@ -270,9 +306,9 @@ export function lineChart(points, { height = 150, format = (v) => String(Math.ro
   const Y = (v) => pad.t + (1 - (v - lo) / (hi - lo)) * (h - pad.t - pad.b);
 
   const defs = document.createElementNS(ns, 'defs');
-  defs.innerHTML = `<linearGradient id="redfade" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ED1C24" stop-opacity="0.28"/>
-      <stop offset="100%" stop-color="#ED1C24" stop-opacity="0"/>
+  defs.innerHTML = `<linearGradient id="accentfade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F26228" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#F26228" stop-opacity="0"/>
     </linearGradient>`;
   svg.appendChild(defs);
 

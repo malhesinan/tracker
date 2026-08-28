@@ -1,9 +1,13 @@
-# REDLINE — personal training log
+# Workout Tracker — personal training log
 
 A mobile-first, offline-first workout logger. No build step, no dependencies,
 no backend. Plain HTML, CSS and ES modules.
 
 Passcode: **9977** (set in `js/config.js`).
+
+Exercise images come from the ExerciseDB free tier operated by AscendAPI —
+a public endpoint, no key and no sign-up. Only the image links are stored;
+nothing is rehosted. Download them once from **More → Exercise images**.
 
 ---
 
@@ -15,7 +19,7 @@ opening `index.html` from the file system will not work.
 **Locally**
 
 ```bash
-cd redline
+cd workout-tracker
 python3 -m http.server 8000
 # then open http://localhost:8000 on your computer,
 # or http://<your-computer-ip>:8000 on your iPhone (same Wi-Fi)
@@ -39,7 +43,8 @@ HTTPS is required for the service worker (except on `localhost`).
 3. Choose **Add to Home Screen**.
 4. Tap **Add**.
 
-It now launches full screen with no browser chrome and works with no signal.
+It now launches full screen with no browser chrome and works with no signal. The
+dumbbell icon appears on the Home Screen under the name **Workout**.
 
 ## Where the data lives
 
@@ -53,6 +58,15 @@ Export regularly.
 ---
 
 ## Manual test checklist
+
+**Exercise images**
+- [ ] More → Exercise images → Download images reports how many exercises matched
+- [ ] Thumbnails appear on the workout screen, exercise picker and library
+- [ ] Exercise detail shows the large image with the ExerciseDB credit underneath
+- [ ] Turning "Show exercise images" off falls back to the initials tiles
+- [ ] An image you add yourself still shows with the setting off
+- [ ] With no connection, the download fails with a clear message and nothing else breaks
+- [ ] Revisit a workout offline: images seen before still appear (service worker cache)
 
 **Lock**
 - [ ] Wrong code shakes and clears; right code (9977) opens the app
@@ -126,3 +140,16 @@ Export regularly.
 - [ ] Add to Home Screen, then enable Airplane Mode → the app still launches and logs
 - [ ] Icon and name appear correctly on the Home Screen
 - [ ] Safe areas respected on a notched iPhone (nothing under the home indicator)
+
+
+---
+
+## Changelog
+
+**1.1.0**
+- Renamed to Workout Tracker; new dumbbell icon across the manifest, favicon and Home Screen
+- Light theme: white surfaces, near-black type, a single orange (`#F26228`) for active, complete and record states
+- Exercise images via the ExerciseDB free API (AscendAPI) with per-exercise and per-prescription overrides, an on/off setting, and offline caching after first view
+- Added the **PT Program**: Push / Pull / Legs / Upper / Lower across Friday–Tuesday, Wednesday steps, Thursday standalone cardio
+- Storage keys moved from `redline.*` to `wt.*`, migrated automatically on first launch
+- Built-in programmes are now seeded by stable id, so one you delete stays deleted

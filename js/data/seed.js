@@ -48,6 +48,7 @@ export function buildSeedProgram() {
   const now = Date.now();
   return {
     id: uid('prog'),
+    seedId: 'fat-loss-block',
     name: 'Fat Loss Block',
     description: 'Four lifting days plus one conditioning day. Upper/lower split.',
     status: 'active',
@@ -110,3 +111,86 @@ export function buildSeedProgram() {
     ]
   };
 }
+
+
+/* ---------------------------------------------------------------------------
+   PT PROGRAM
+   Six training days from the PT plan: Push / Pull / Legs / Upper / Lower,
+   Wednesday off with a step target, Thursday standalone cardio.
+   ------------------------------------------------------------------------ */
+export function buildPTProgram() {
+  const now = Date.now();
+  return {
+    id: uid('prog'),
+    seedId: 'pt-program',
+    name: 'PT Program',
+    description: 'Push / Pull / Legs / Upper / Lower across Friday to Tuesday, with two off days.',
+    status: 'draft',
+    createdAt: now,
+    updatedAt: now,
+    version: 1,
+    days: [
+      day('Push', 'Chest, shoulders and triceps', 5, 70, '', [
+        rx('incline_dumbbell_press', [3], reps(6, 8), 150, { cue: 'Bench at 30°. Heaviest pressing of the day.' }),
+        rx('dumbbell_bench_press', [3], reps(10, 12), 120, { name: 'Flat Dumbbell or Machine Press' }),
+        rx('cable_fly', [2], reps(12, 15), 90, { name: 'Cable Fly — Low to High', cue: 'Drive from low to high, finish with the hands together at chin height.' }),
+        rx('overhead_cable_extension', [3], reps(10, 12), 90),
+        rx('cable_pushdown', [2], reps(12, 15), 60, { name: 'Rope Pushdown' }),
+        rx('dumbbell_lateral_raise', [3], reps(12, 15), 60),
+        rx('incline_treadmill_walk', [1], mins(20), 0, { load: 'none' })
+      ]),
+
+      day('Pull', 'Back and biceps', 6, 70, '', [
+        rx('lat_pulldown', [3], reps(6, 8), 150, { name: 'Lat Pulldown or Weighted Pull-Up' }),
+        rx('chest_supported_row', [3], reps(8, 10), 120, { name: 'Chest-Supported Row — Overhand' }),
+        rx('single_arm_cable_row', [2], reps(10, 12), 90, { name: 'Single-Arm Cable Row — Neutral' }),
+        rx('straight_arm_pulldown', [2], reps(12, 15), 90, { name: 'Cable Pullover' }),
+        rx('face_pull', [3], reps(15, 20), 60),
+        rx('incline_dumbbell_curl', [3], reps(8, 12), 60),
+        rx('incline_treadmill_walk', [1], mins(20), 0, { load: 'none' })
+      ]),
+
+      day('Legs', 'Heavy', 0, 75, '', [
+        rx('back_squat', [3], reps(5, 8), 180, { cue: 'Heaviest sets of the week. Ramp up properly.' }),
+        rx('romanian_deadlift', [3], reps(8, 10), 150, { cue: 'Push the hips back, bar against the legs.' }),
+        rx('leg_press', [3], reps(12, 15), 120),
+        rx('lying_leg_curl', [3], reps(10, 12), 90, { name: 'Lying or Seated Leg Curl' }),
+        rx('standing_calf_raise', [4], reps(8, 12), 60),
+        rx('hanging_leg_raise', [3], reps(10, 20), 60, { load: 'bodyweight', cue: 'Every set to failure.' })
+      ]),
+
+      day('Upper', 'Moderate', 1, 70, '', [
+        rx('seated_dumbbell_press', [3], reps(8, 10), 120, { name: 'Seated Shoulder Press' }),
+        rx('dip_chest', [3], reps(10, 12), 90, { name: 'Cable Decline Press or Dip' }),
+        rx('machine_row', [3], reps(10, 12), 90, { name: 'Row Machine — Neutral Grip' }),
+        rx('lat_pulldown', [2], reps(12, 15), 90, { name: 'Lat Pulldown — Wide Overhand' }),
+        rx('cable_lateral_raise', [3], reps(15, 20), 60, { name: 'Cable Lateral Raise — One Arm' }),
+        rx('hammer_curl', [2], reps(10, 12), 60),
+        rx('cable_pushdown', [2], reps(12, 15), 60, { name: 'Reverse-Grip Pushdown' }),
+        rx('incline_treadmill_walk', [1], mins(20), 0, { load: 'none' })
+      ]),
+
+      day('Lower + Rear Delts', 'Quads, hamstrings, calves and rear delts', 2, 70, '', [
+        rx('bulgarian_split_squat', [3], reps(8, 12), 120, { name: 'Bulgarian Split Squat or Hack Squat' }),
+        rx('hip_thrust', [3], reps(10, 12), 120, { name: 'Hip Thrust or 45° Back Extension' }),
+        rx('leg_extension', [3], reps(12, 15), 75),
+        rx('seated_leg_curl', [2], reps(12, 15), 75),
+        rx('seated_calf_raise', [3, 4], reps(12, 15), 60),
+        rx('reverse_pec_deck', [3], reps(15, 20), 60, { name: 'Reverse Fly — Cable or Machine' }),
+        rx('cable_crunch', [3], reps(10, 15), 60)
+      ]),
+
+      day('Off', 'Steps only', 3, 0, '8,000–10,000 steps.', []),
+
+      day('Off — Cardio Only', 'Standalone conditioning', 4, 40, 'Zone 2 the whole way. You should be able to hold a conversation.', [
+        rx('incline_treadmill_walk', [1], mins(40), 0, { load: 'none', cue: '8–12% grade, zone 2. Standalone session, no lifting.' })
+      ])
+    ]
+  };
+}
+
+/** Everything the app seeds on first run, keyed by a stable seedId. */
+export const SEED_BUILDERS = [
+  { seedId: 'fat-loss-block', build: buildSeedProgram },
+  { seedId: 'pt-program', build: buildPTProgram }
+];

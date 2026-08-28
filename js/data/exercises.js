@@ -51,6 +51,8 @@ const T = [
   ['seated_cable_row','Seated Cable Row','Back','Cable','Mid Back','Lats,Biceps','Horizontal Pull','weight','reps','Cable Row','Chest up, no rocking. Pull to the navel.'],
   ['one_arm_dumbbell_row','One-Arm Dumbbell Row','Back','Dumbbell','Lats','Mid Back,Biceps','Horizontal Pull','weight','reps','DB Row,Single Arm Row','Hand on the bench, pull to the hip and keep the shoulders square.'],
   ['t_bar_row','T-Bar Row','Back','Barbell','Mid Back','Lats,Biceps','Horizontal Pull','weight','reps','Landmine Row','Short range at the top is fine. Do not round the lower back.'],
+  ['single_arm_cable_row','Single-Arm Cable Row','Back','Cable','Lats','Mid Back,Biceps','Horizontal Pull','weight','reps','One Arm Cable Row','Neutral grip. Let the shoulder travel forward at the stretch, then pull to the hip.'],
+  ['machine_row','Machine Row','Back','Machine','Mid Back','Lats,Biceps','Horizontal Pull','weight','reps','Seated Machine Row,Hammer Strength Row','Chest against the pad. Neutral grip keeps the elbows tight to the body.'],
   ['straight_arm_pulldown','Straight-Arm Pulldown','Back','Cable','Lats','Triceps,Core','Vertical Pull','weight','reps','Lat Pushdown','Arms stay long. Sweep the bar to the thighs.'],
   ['deadlift','Deadlift','Back','Barbell','Lower Back','Glutes,Hamstrings,Traps','Hinge','weight','reps','Conventional Deadlift','Bar against the shins, lats tight, push the floor away.'],
   ['trap_bar_deadlift','Trap-Bar Deadlift','Back','Barbell','Glutes','Quads,Lower Back,Traps','Hinge','weight','reps','Hex Bar Deadlift','More forgiving on the back than the straight bar.'],

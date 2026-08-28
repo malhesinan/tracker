@@ -75,7 +75,7 @@ export function renderTrain(root, ctx) {
 /* ------------------------------------------------------------- pieces */
 function brand(programName) {
   return el('div', { class: 'row between', style: 'padding-top:4px' }, [
-    el('div', { class: 'eyebrow', text: 'REDLINE' }),
+    el('div', { class: 'eyebrow', text: 'WORKOUT TRACKER' }),
     programName ? el('div', { class: 'eyebrow', text: programName.toUpperCase() }) : null
   ]);
 }
@@ -89,6 +89,16 @@ function heroReady(program, day, ctx) {
     el('h1', { class: 'display', text: day.name }),
     day.subtitle ? el('div', { class: 'sub', text: day.subtitle }) : null
   ]));
+
+  /* Some days are scheduled but carry no lifting — a step target, a walk. */
+  if (!day.exercises.length) {
+    if (day.notes) {
+      wrap.appendChild(el('div', { class: 'metrics' }, [metric(day.notes, 'Target')]));
+    } else {
+      wrap.appendChild(el('div', { class: 'rule' }));
+    }
+    return wrap;
+  }
 
   wrap.appendChild(el('div', { class: 'metrics' }, [
     metric(String(day.exercises.length), 'Exercises'),
