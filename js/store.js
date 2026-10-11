@@ -56,6 +56,8 @@ function applySeeds() {
     if (seeded.includes(seedId)) return;
     if (state.programs.some((p) => p.seedId === seedId)) { seeded.push(seedId); return; }
     const program = build();
+    // A stable id means every device seeds the same record, so sync never duplicates it.
+    program.id = `prog_${seedId}`;
     // The first programme on a blank device becomes the active one.
     if (!state.programs.some((p) => p.status === 'active')) program.status = 'active';
     else if (program.status === 'active') program.status = 'draft';

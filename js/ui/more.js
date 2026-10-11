@@ -2,13 +2,14 @@
    MORE — preferences, data management, app information.
    ========================================================================== */
 
-import { el, download, longDate, num, mmss } from '../util.js';
+import { el, download, longDate, num, mmss, relativeDay, timeOfDay } from '../util.js';
 import { APP, IMAGE_SOURCE } from '../config.js';
 import { storage, storageIsPersistent } from '../storage.js';
 import {
   getSettings, updateSettings, reloadFromStorage, completedSessions, getPrograms, allExercises
 } from '../store.js';
 import { syncImages, imageCacheInfo, clearImages } from '../images.js';
+import { cloudStatus, onCloudStatus, signIn, signOut, syncNow } from '../cloud.js';
 import { setLabel } from '../prescription.js';
 import { sessionTotals, summaryStats } from '../stats.js';
 import {
@@ -76,6 +77,10 @@ export function renderMore(root, ctx) {
     'The passcode keeps the app private on a shared phone. It is not encryption — anyone with the unlocked device and a browser console can read the stored data.' }));
   screen.appendChild(lockCard);
 
+  /* ------------------------------------------------------------ cloud */
+  screen.appendChild(sectionHead('Cloud sync'));
+  screen.appendChild(cloudCard(ctx));
+
   /* ------------------------------------------------------------ data */
   screen.appendChild(sectionHead('Data'));
   const stats = summaryStats();
@@ -109,6 +114,92 @@ export function renderMore(root, ctx) {
   screen.appendChild(el('div', { class: 'attribution', style: 'margin-top:22px' }, [
     el('div', { text: `Exercise images: ${IMAGE_SOURCE.attribution}. Images are linked from their CDN, never rehosted. Any image you add yourself is stored with the attribution and licence you enter.` })
   ]));
+}
+
+/* ------------------------------------------------------------ cloud sync */
+function cloudCard(ctx) {
+  const card = el('div', { class: 'card' });
+  const st = cloudStatus();
+
+  if (!st.configured) {
+    card.appendChild(el('div', { class: 'hint', style: 'margin-top:0', text:
+      'Everything is stored on this device only. Cloud sync is switched off until a Supabase project is added to js/config.js — see "Cloud sync" in the README.' }));
+    return card;
+  }
+
+  if (!st.signedIn) {
+    const email = el('input', { class: 'input', type: 'email', autocomplete: 'username', placeholder: 'you@example.com', 'aria-label': 'Email' });
+    const password = el('input', { class: 'input', type: 'password', autocomplete: 'current-password', placeholder: 'Password', 'aria-label': 'Password', style: 'margin-top:8px' });
+    const message = el('div', { class: 'hint', text: st.error && /sign in/i.test(st.error) ? st.error :
+      'Sign in to back up this device and keep your other devices in step. The first sign-in uploads everything stored here.' });
+    const btn = el('button', { class: 'btn btn-block btn-primary', type: 'button', text: 'SIGN IN', style: 'margin-top:12px' });
+
+    const submit = async () => {
+      if (!email.value.trim() || !password.value) { (email.value.trim() ? password : email).focus(); return; }
+      btn.disabled = true;
+      btn.textContent = 'SIGNING IN…';
+      try {
+        const result = await signIn(email.value.trim(), password.value);
+        toast(result && result.pushed ? `Signed in · ${result.pushed} records uploaded` : 'Signed in · synced');
+        ctx.rerender();
+      } catch (e) {
+        message.textContent = e.message || 'Sign-in failed';
+        message.style.color = 'var(--accent-bright)';
+        btn.disabled = false;
+        btn.textContent = 'SIGN IN';
+        if (cloudStatus().signedIn) ctx.rerender();   // signed in, but the first sync failed
+      }
+    };
+    btn.addEventListener('click', submit);
+    password.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+
+    card.append(email, password, btn, message);
+    return card;
+  }
+
+  card.appendChild(kv('Account', st.email || 'Signed in'));
+  const statusValue = el('div', { class: 'v' });
+  card.appendChild(el('div', { class: 'kv' }, [el('div', { class: 'k', text: 'Status' }), statusValue]));
+  const errorLine = el('div', { class: 'hint' });
+  card.appendChild(errorLine);
+
+  const paint = (now) => {
+    statusValue.textContent = now.syncing ? 'Syncing…'
+      : now.lastSyncAt ? `Synced ${relativeDay(now.lastSyncAt).toLowerCase()} ${timeOfDay(now.lastSyncAt)}` : 'Not synced yet';
+    errorLine.textContent = now.error || '';
+    errorLine.style.display = now.error ? '' : 'none';
+    errorLine.style.color = now.error ? 'var(--accent-bright)' : '';
+  };
+  paint(st);
+  const off = onCloudStatus((now) => {
+    if (!now.signedIn) { off(); ctx.rerender(); return; }
+    paint(now);
+  });
+  ctx.onLeave(off);
+
+  const syncBtn = el('button', { class: 'btn btn-block btn-outline', type: 'button', text: 'SYNC NOW', style: 'margin-top:12px' });
+  syncBtn.addEventListener('click', async () => {
+    syncBtn.disabled = true;
+    try {
+      const r = await syncNow();
+      toast(r && r.pushed ? `Synced · ${r.pushed} records uploaded` : 'Up to date');
+    } catch (e) {
+      toast('Sync failed', 'warn');
+    } finally {
+      syncBtn.disabled = false;
+    }
+  });
+
+  const outBtn = el('button', { class: 'btn btn-block btn-ghost', type: 'button', text: 'SIGN OUT', style: 'margin-top:8px' });
+  outBtn.addEventListener('click', () => confirmSheet({
+    title: 'Sign out',
+    message: 'This device stops syncing. Everything stored on it stays here, and your cloud copy is untouched.',
+    confirmLabel: 'Sign out',
+    onConfirm: async () => { await signOut(); toast('Signed out'); ctx.rerender(); }
+  }));
+
+  card.append(syncBtn, outBtn);
+  return card;
 }
 
 /* ------------------------------------------------------ exercise images */
@@ -354,7 +445,9 @@ function restoreBackup(ctx) {
 function resetFlow(ctx) {
   confirmSheet({
     title: 'Reset application',
-    message: 'Every programme, workout and custom exercise on this device will be deleted. A backup is written first and can be restored from this screen. Export first if the data matters.',
+    message: cloudStatus().signedIn
+      ? 'Everything on this device will be deleted, then downloaded again from your cloud copy on the next sync. Your cloud data is not touched. A local backup is written first.'
+      : 'Every programme, workout and custom exercise on this device will be deleted. A backup is written first and can be restored from this screen. Export first if the data matters.',
     confirmLabel: 'Delete everything',
     onConfirm: () => {
       storage.resetAll();

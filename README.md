@@ -1,7 +1,7 @@
 # Workout Tracker — personal training log
 
-A mobile-first, offline-first workout logger. No build step, no dependencies,
-no backend. Plain HTML, CSS and ES modules.
+A mobile-first, offline-first workout logger. No build step, no dependencies.
+Plain HTML, CSS and ES modules, with optional cloud sync to Supabase.
 
 Passcode: **9977** (set in `js/config.js`).
 
@@ -19,7 +19,7 @@ opening `index.html` from the file system will not work.
 **Locally**
 
 ```bash
-cd workout-tracker
+cd tracker
 python3 -m http.server 8000
 # then open http://localhost:8000 on your computer,
 # or http://<your-computer-ip>:8000 on your iPhone (same Wi-Fi)
@@ -48,11 +48,55 @@ dumbbell icon appears on the Home Screen under the name **Workout**.
 
 ## Where the data lives
 
-Everything is stored in `localStorage` on the device, behind the `storage`
-module in `js/storage.js`. Nothing is sent anywhere. Back up from
-**More → Data → Export all data**.
+The phone is always the working copy: every screen reads and writes
+`localStorage`, so the app works with no signal. With **cloud sync** switched
+on, changes are also copied to a Supabase database and other signed-in
+devices pick them up.
 
-Deleting Safari website data, or deleting the installed app, deletes the log.
+### Cloud sync (Supabase)
+
+One-time setup, about ten minutes:
+
+1. Create a free project at https://supabase.com.
+2. **SQL Editor → New query**, paste the contents of `supabase/schema.sql`, **Run**.
+   This creates the `records` table, locks every row to its owner (Row Level
+   Security) and adds two read-only views, `workout_sessions` and
+   `workout_sets` (one row per set), for querying your history.
+3. **Authentication → Sign In / Providers**: turn off **Allow new users to sign up**,
+   so nobody else can create an account on your project.
+4. **Authentication → Users → Add user → Create new user**: your email and a
+   password, with **Auto Confirm User** ticked.
+5. **Project Settings → API**: copy the **Project URL** and the **anon public**
+   key into `CLOUD.url` and `CLOUD.anonKey` in `js/config.js`, then deploy.
+   The anon key is meant to be public; the RLS policies are what protect the data.
+
+**Moving your existing data in:** export a backup first (**More → Data →
+Export all data**). Then open the updated app on the phone that holds the data,
+go to **More → Cloud sync** and sign in. The first sign-in on a device does this:
+
+| Cloud | This device | Result |
+|---|---|---|
+| empty | has data | everything on the device is uploaded |
+| has data | new (no workouts or custom exercises) | the cloud copy is downloaded |
+| has data | has data | both are kept; where the same record differs, the device wins |
+
+After that, sync runs automatically a couple of seconds after each change, when
+the app comes back to the foreground or online, and every five minutes. Changes
+from other devices are never loaded during a workout or while a day is being
+edited; they arrive once you leave that screen. If the same record was changed
+on two devices before either synced, the device that syncs last wins.
+
+Signing out keeps everything on the device. **Reset application** while signed
+in clears the device and downloads the cloud copy again. The cloud copy is left alone.
+
+### Device only
+
+Without cloud sync, everything is stored in `localStorage` on the device,
+behind the `storage` module in `js/storage.js`, and nothing is sent anywhere.
+Back up from **More → Data → Export all data**.
+
+Deleting Safari website data, or deleting the installed app, deletes the log on
+that device. Without cloud sync, that is the only copy.
 Export regularly.
 
 ---
@@ -136,6 +180,17 @@ Export regularly.
 - [ ] Importing a corrupt file is rejected and changes nothing
 - [ ] Reset asks for confirmation, and Restore last backup brings the data back
 
+**Cloud sync**
+- [ ] With `CLOUD` empty in `js/config.js`, More → Cloud sync says sync is off and nothing else changes
+- [ ] A wrong password shows the error under the form
+- [ ] First sign-in on the phone reports records uploaded; rows appear in Supabase `records`
+- [ ] `select * from workout_sets` lists the logged sets
+- [ ] Log a set, wait a few seconds → Status shows a fresh "Synced" time
+- [ ] Sign in on a second device → the same programmes and history appear, with no duplicate programmes
+- [ ] Edit on one device, reopen the other → the change appears (not while a workout is open)
+- [ ] Log in Airplane Mode, then reconnect → the sets reach the cloud
+- [ ] Sign out keeps the data on the device
+
 **Offline / PWA**
 - [ ] Add to Home Screen, then enable Airplane Mode → the app still launches and logs
 - [ ] Icon and name appear correctly on the Home Screen
@@ -145,6 +200,12 @@ Export regularly.
 ---
 
 ## Changelog
+
+**1.2.0**
+- Cloud sync with Supabase: email sign-in, automatic two-way sync, offline-first (works with no signal and catches up when back online)
+- The first sign-in uploads everything already on the device, so an existing log moves to the database without an export/import step
+- `supabase/schema.sql`: the `records` table with Row Level Security, plus `workout_sessions` and `workout_sets` views for querying
+- Built-in programmes now get a stable id, so a second device never duplicates them
 
 **1.1.1**
 - Fixed the image download stopping after the first page when the endpoint returns fewer exercises than requested — this was capping matches at a handful

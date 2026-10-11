@@ -41,6 +41,18 @@ const adapter = {
 
 export const storageIsPersistent = () => !usingMemory;
 
+/* --- change notifications (used by cloud sync) --------------------------- */
+let changeListener = null;
+let notifyMuted = 0;
+
+/** Register one listener for data changes: fn(kind), kind = 'data' | 'reset'. */
+export function onStorageChange(fn) { changeListener = fn; }
+
+function notify(kind = 'data') {
+  if (notifyMuted || !changeListener) return;
+  try { changeListener(kind); } catch (e) { console.warn('[storage] change listener failed', e); }
+}
+
 /* --- one-time migration from the 1.0 key prefix ------------------------- */
 function migrateLegacyKeys() {
   try {
@@ -86,17 +98,17 @@ function write(key, value) {
 /* --- public API ---------------------------------------------------------- */
 export const storage = {
   loadPrograms()            { return read(STORAGE_KEYS.programs, []); },
-  savePrograms(programs)    { return write(STORAGE_KEYS.programs, programs); },
+  savePrograms(programs)    { const ok = write(STORAGE_KEYS.programs, programs); notify(); return ok; },
 
   /** Custom + edited exercises only. Built-ins live in code. */
   loadExercises()           { return read(STORAGE_KEYS.exercises, []); },
-  saveExercises(exercises)  { return write(STORAGE_KEYS.exercises, exercises); },
+  saveExercises(exercises)  { const ok = write(STORAGE_KEYS.exercises, exercises); notify(); return ok; },
 
   loadSessions()            { return read(STORAGE_KEYS.sessions, []); },
-  saveSessions(sessions)    { return write(STORAGE_KEYS.sessions, sessions); },
+  saveSessions(sessions)    { const ok = write(STORAGE_KEYS.sessions, sessions); notify(); return ok; },
 
   loadSettings()            { return { ...DEFAULT_SETTINGS, ...read(STORAGE_KEYS.settings, {}) }; },
-  saveSettings(settings)    { return write(STORAGE_KEYS.settings, settings); },
+  saveSettings(settings)    { const ok = write(STORAGE_KEYS.settings, settings); notify(); return ok; },
 
   loadMeta()                { return read(STORAGE_KEYS.meta, { schemaVersion: APP.schemaVersion, createdAt: Date.now(), seeded: [] }); },
   saveMeta(meta)            { return write(STORAGE_KEYS.meta, meta); },
@@ -104,6 +116,18 @@ export const storage = {
   loadImageCache()          { return read(STORAGE_KEYS.imageCache, null); },
   saveImageCache(cache)     { return write(STORAGE_KEYS.imageCache, cache); },
   clearImageCache()         { adapter.remove(STORAGE_KEYS.imageCache); },
+
+  /* Cloud sync bookkeeping. Never exported, never synced. */
+  loadAuth()                { return read(STORAGE_KEYS.auth, null); },
+  saveAuth(auth)            { if (auth) write(STORAGE_KEYS.auth, auth); else adapter.remove(STORAGE_KEYS.auth); },
+  loadSyncState()           { return read(STORAGE_KEYS.sync, null); },
+  saveSyncState(state)      { if (state) write(STORAGE_KEYS.sync, state); else adapter.remove(STORAGE_KEYS.sync); },
+
+  /** Run fn without firing change notifications — for writes that came from the cloud. */
+  quietly(fn) {
+    notifyMuted += 1;
+    try { return fn(); } finally { notifyMuted -= 1; }
+  },
 
   /* Unlock state. sessionStorage by default so the passcode is asked again on
      a fresh launch; localStorage only if the user opts in. */
@@ -236,5 +260,6 @@ export const storage = {
     adapter.remove(STORAGE_KEYS.settings);
     adapter.remove(STORAGE_KEYS.meta);
     adapter.remove(STORAGE_KEYS.imageCache);
+    notify('reset');
   }
 };
