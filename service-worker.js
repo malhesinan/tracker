@@ -3,10 +3,11 @@
    ----------------------------------------------------------------------------
    The whole app is precached on install, so every screen works with no signal.
    Strategy: cache-first for app files (instant launch), with a quiet network
-   refresh so a new deploy is picked up on the next launch.
+   refresh. Bump VERSION on every deploy: a changed worker re-downloads the
+   whole shell, takes over at once, and the page reloads itself (see app.js).
    ========================================================================== */
 
-const VERSION = 'workout-tracker-v1.2.0';
+const VERSION = 'workout-tracker-v1.2.1';
 const SHELL = [
   './',
   './index.html',
@@ -41,7 +42,9 @@ const SHELL = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(VERSION)
-      .then((cache) => cache.addAll(SHELL))
+      // cache: 'reload' skips the browser's HTTP cache, so a new version never
+      // precaches files left over from the previous one.
+      .then((cache) => cache.addAll(SHELL.map((url) => new Request(url, { cache: 'reload' }))))
       .then(() => self.skipWaiting())
   );
 });
@@ -66,7 +69,7 @@ self.addEventListener('fetch', (event) => {
   // Navigation: serve the shell so a cold offline launch still works.
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
+      fetch(request, { cache: 'no-cache' })
         .then((response) => {
           const copy = response.clone();
           caches.open(VERSION).then((cache) => cache.put('./index.html', copy));
@@ -81,7 +84,7 @@ self.addEventListener('fetch', (event) => {
   if (url.origin === self.location.origin) {
     event.respondWith(
       caches.match(request).then((cached) => {
-        const network = fetch(request)
+        const network = fetch(request, { cache: 'no-cache' })
           .then((response) => {
             if (response && response.status === 200) {
               const copy = response.clone();
