@@ -7,7 +7,7 @@ export const APP = {
   name: 'Workout Tracker',
   shortName: 'Workout',
   tagline: 'Training log',
-  version: '1.3.0',
+  version: '1.3.1',
   schemaVersion: 4
 };
 
@@ -46,11 +46,14 @@ export const LEGACY_KEYS = {
 /* ---------------------------------------------------------------------------
    Exercise images — ExerciseDB free tier, operated by AscendAPI.
    No API key, no sign-up. Images are served from their CDN and cached by the
-   service worker after first view. The app works fully without any of this.
+   service worker after first view. Built-in exercises link straight to their
+   media by ExerciseDB id; the catalogue endpoint is only used to match custom
+   exercises. The app works fully without any of this.
    ------------------------------------------------------------------------ */
 export const IMAGE_SOURCE = {
   name: 'ExerciseDB (AscendAPI)',
   endpoint: 'https://oss.exercisedb.dev/api/v1/exercises',
+  mediaBase: 'https://static.exercisedb.dev/media',   // + /<exerciseId>.gif
   homepage: 'https://ascendapi.com',
   attribution: 'ExerciseDB by AscendAPI',
   license: 'Free tier — see ascendapi.com terms',

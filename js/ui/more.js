@@ -8,7 +8,7 @@ import { storage, storageIsPersistent } from '../storage.js';
 import {
   getSettings, updateSettings, reloadFromStorage, completedSessions, getPrograms, allExercises
 } from '../store.js';
-import { syncImages, imageCacheInfo, clearImages } from '../images.js';
+import { syncImages, imageCacheInfo, clearImages, imageFor } from '../images.js';
 import { cloudStatus, cloudConfigured, onCloudStatus, signIn, signOut, syncNow } from '../cloud.js';
 import { setLabel } from '../prescription.js';
 import { sessionTotals, summaryStats } from '../stats.js';
@@ -214,16 +214,16 @@ function imagesCard(ctx, settings) {
     (v) => { updateSettings({ exerciseImages: v }); },
     'Demonstration images beside each exercise. Your own images always show.'));
 
+  const library = allExercises();
+  const unlinked = library.filter((ex) => !ex.exerciseDbId);
+  const covered = library.filter((ex) => imageFor(ex, null, { exerciseImages: true })).length;
   const status = el('div', { class: 'small muted', style: 'margin:14px 0 10px' , text:
-    info.present
-      ? `${info.count} of ${allExercises().length} exercises matched · ${info.remoteCount} downloaded from the catalogue · ${longDate(info.fetchedAt)}`
-      : 'No images downloaded yet.' });
+    `${covered} of ${library.length} exercises have an image` +
+    (info.present ? ` · catalogue matched ${longDate(info.fetchedAt)}` : '') });
   card.appendChild(status);
 
-  if (info.present && info.count < allExercises().length * 0.5) {
-    card.appendChild(el('div', { class: 'hint', style: 'margin:-4px 0 10px', text:
-      `A low match count usually means the catalogue download was cut short — ${info.remoteCount} exercises came back. Refreshing often fixes it. Any exercise without a match keeps its initials tile, and you can paste your own image URL into it from the exercise library.` }));
-  }
+  card.appendChild(el('div', { class: 'hint', style: 'margin:-4px 0 10px', text:
+    `Built-in exercises link to their image directly. Downloading the catalogue matches the other ${unlinked.length} — your custom exercises and the few built-ins ExerciseDB has no equivalent for — against the catalogue by name. Any exercise without an image keeps its initials tile, and you can paste your own image URL into it from the exercise library.` }));
 
   const btn = el('button', {
     class: 'btn btn-block ' + (info.present ? 'btn-outline' : 'btn-primary'),
@@ -237,7 +237,7 @@ function imagesCard(ctx, settings) {
       const result = await syncImages(allExercises(), ({ fetched, searching }) => {
         btn.textContent = searching ? `MATCHING… ${searching}`.slice(0, 34) : `DOWNLOADING… ${fetched}`;
       });
-      toast(`Matched ${result.count} of ${allExercises().length} · ${result.remoteCount} in catalogue`);
+      toast(`Matched ${result.count} of ${unlinked.length} · ${result.remoteCount} in catalogue`);
       ctx.rerender();
     } catch (err) {
       btn.disabled = false;
@@ -249,8 +249,8 @@ function imagesCard(ctx, settings) {
   card.appendChild(btn);
 
   if (info.present) {
-    const clear = el('button', { class: 'btn btn-block btn-ghost', type: 'button', text: 'REMOVE DOWNLOADED IMAGES', style: 'margin-top:8px' });
-    clear.addEventListener('click', () => { clearImages(); toast('Images removed'); ctx.rerender(); });
+    const clear = el('button', { class: 'btn btn-block btn-ghost', type: 'button', text: 'REMOVE CATALOGUE MATCHES', style: 'margin-top:8px' });
+    clear.addEventListener('click', () => { clearImages(); toast('Catalogue matches removed'); ctx.rerender(); });
     card.appendChild(clear);
   }
 
