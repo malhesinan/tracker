@@ -126,16 +126,32 @@ class CloudError extends Error {
   constructor(message, httpStatus) { super(message); this.httpStatus = httpStatus; }
 }
 
+/** Supabase's auth errors, in words that say what to do. */
+function friendlyAuthError(json, httpStatus) {
+  const raw = json.error_description || json.msg || json.message || '';
+  const code = json.error_code || json.code || '';
+  if (code === 'invalid_credentials' || /invalid login credentials/i.test(raw)) return 'Wrong email or password.';
+  if (code === 'email_not_confirmed' || /not confirmed/i.test(raw)) {
+    return 'This account is not confirmed yet. In Supabase, open Authentication → Users and confirm it (or re-create it with Auto Confirm ticked).';
+  }
+  if (/invalid api key|no api key/i.test(raw) || httpStatus === 401) return 'The app’s Supabase key was rejected. The anon key in js/config.js needs checking.';
+  if (httpStatus === 429) return 'Too many attempts. Wait a minute and try again.';
+  return raw ? `Sign-in failed: ${raw}` : `Sign-in failed (${httpStatus}).`;
+}
+
 async function authRequest(path, body, accessToken) {
   const headers = { apikey: CLOUD.anonKey, 'Content-Type': 'application/json' };
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
-  const res = await fetch(`${CLOUD.url}/auth/v1/${path}`, {
-    method: 'POST', headers, body: JSON.stringify(body || {})
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new CloudError(json.error_description || json.msg || json.message || `Sign-in failed (${res.status})`, res.status);
+  let res;
+  try {
+    res = await fetch(`${CLOUD.url}/auth/v1/${path}`, {
+      method: 'POST', headers, body: JSON.stringify(body || {})
+    });
+  } catch (e) {
+    throw new CloudError('Can’t reach the server. Check your connection and try again.', 0);
   }
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new CloudError(friendlyAuthError(json, res.status), res.status);
   return json;
 }
 
@@ -162,7 +178,12 @@ export async function signIn(email, password) {
     storage.saveSyncState(null);
   }
   setStatus({ error: null });
-  return syncNow();
+  try {
+    return await syncNow();
+  } catch (e) {
+    e.signedIn = true;      // the account is fine; the sync retries on its own
+    throw e;
+  }
 }
 
 /** Sign out. Data on this device is kept; it just stops syncing. */
@@ -209,7 +230,10 @@ async function rest(method, query, body, extraHeaders = {}) {
   if (!res.ok) {
     const json = await res.json().catch(() => ({}));
     if (res.status === 401) storage.saveAuth({ ...auth, expiresAt: 0 });  // refresh next time
-    throw new CloudError(json.message || `Cloud request failed (${res.status})`, res.status);
+    const missingTable = res.status === 404 || /relation .* does not exist|could not find the table/i.test(json.message || '');
+    throw new CloudError(missingTable
+      ? 'The database table is missing. Run supabase/schema.sql in the Supabase SQL Editor.'
+      : (json.message || `Cloud request failed (${res.status})`), res.status);
   }
   return res.status === 204 ? null : res.json().catch(() => null);
 }
@@ -290,6 +314,18 @@ async function firstSync(auth) {
       }
       // otherwise left unsynced → this device's version is pushed below
     });
+
+    // Only one programme can be active. If the merge left several, the
+    // account's existing one wins; the rest drop to draft (edited → pushed).
+    const activeIds = Array.from(local.program.values()).filter((p) => p.status === 'active').map((p) => p.id);
+    if (activeIds.length > 1) {
+      const remoteActive = rows.find((r) => r.kind === 'program' && !r.deleted && r.data
+        && r.data.status === 'active' && activeIds.includes(r.id));
+      const keepId = remoteActive ? remoteActive.id : activeIds[0];
+      activeIds.forEach((id) => {
+        if (id !== keepId) local.program.set(id, { ...local.program.get(id), status: 'draft' });
+      });
+    }
     writeSnapshot(local);
   }
 

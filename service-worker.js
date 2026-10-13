@@ -7,7 +7,7 @@
    whole shell, takes over at once, and the page reloads itself (see app.js).
    ========================================================================== */
 
-const VERSION = 'workout-tracker-v1.2.1';
+const VERSION = 'workout-tracker-v1.3.0';
 const SHELL = [
   './',
   './index.html',
@@ -26,6 +26,7 @@ const SHELL = [
   './js/data/seed.js',
   './js/ui/components.js',
   './js/ui/lock.js',
+  './js/ui/signin.js',
   './js/ui/train.js',
   './js/ui/workout.js',
   './js/ui/program.js',

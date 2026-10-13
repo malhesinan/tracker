@@ -9,7 +9,7 @@ import {
   getSettings, updateSettings, reloadFromStorage, completedSessions, getPrograms, allExercises
 } from '../store.js';
 import { syncImages, imageCacheInfo, clearImages } from '../images.js';
-import { cloudStatus, onCloudStatus, signIn, signOut, syncNow } from '../cloud.js';
+import { cloudStatus, cloudConfigured, onCloudStatus, signIn, signOut, syncNow } from '../cloud.js';
 import { setLabel } from '../prescription.js';
 import { sessionTotals, summaryStats } from '../stats.js';
 import {
@@ -64,18 +64,21 @@ export function renderMore(root, ctx) {
     { label: 'Programmes', hint: `${getPrograms().length} saved`, run: () => ctx.go({ tab: 'program', name: 'programList' }) }
   ]));
 
-  /* ------------------------------------------------------------ lock */
-  screen.appendChild(sectionHead('Lock screen'));
-  const lockCard = el('div', { class: 'card' });
-  lockCard.appendChild(switchRow('Stay unlocked on this device', s.rememberUnlock,
-    (v) => { updateSettings({ rememberUnlock: v }); storage.setUnlock(true, v); },
-    'Off means the passcode is asked every time the app is launched.'));
-  const lockNow = el('button', { class: 'btn btn-block btn-outline', type: 'button', text: 'LOCK NOW', style: 'margin-top:12px' });
-  lockNow.addEventListener('click', () => { storage.setUnlock(false, false); ctx.lock(); });
-  lockCard.appendChild(lockNow);
-  lockCard.appendChild(el('div', { class: 'hint', style: 'margin-top:12px', text:
-    'The passcode keeps the app private on a shared phone. It is not encryption — anyone with the unlocked device and a browser console can read the stored data.' }));
-  screen.appendChild(lockCard);
+  /* ------------------------------------------------------------ lock
+     Only without cloud sync — with it, the account sign-in is the gate. */
+  if (!cloudConfigured()) {
+    screen.appendChild(sectionHead('Lock screen'));
+    const lockCard = el('div', { class: 'card' });
+    lockCard.appendChild(switchRow('Stay unlocked on this device', s.rememberUnlock,
+      (v) => { updateSettings({ rememberUnlock: v }); storage.setUnlock(true, v); },
+      'Off means the passcode is asked every time the app is launched.'));
+    const lockNow = el('button', { class: 'btn btn-block btn-outline', type: 'button', text: 'LOCK NOW', style: 'margin-top:12px' });
+    lockNow.addEventListener('click', () => { storage.setUnlock(false, false); ctx.lock(); });
+    lockCard.appendChild(lockNow);
+    lockCard.appendChild(el('div', { class: 'hint', style: 'margin-top:12px', text:
+      'The passcode keeps the app private on a shared phone. It is not encryption — anyone with the unlocked device and a browser console can read the stored data.' }));
+    screen.appendChild(lockCard);
+  }
 
   /* ------------------------------------------------------------ cloud */
   screen.appendChild(sectionHead('Cloud sync'));
@@ -172,7 +175,7 @@ function cloudCard(ctx) {
   };
   paint(st);
   const off = onCloudStatus((now) => {
-    if (!now.signedIn) { off(); ctx.rerender(); return; }
+    if (!now.signedIn) { off(); return; }   // the app shows the sign-in screen
     paint(now);
   });
   ctx.onLeave(off);
@@ -193,9 +196,9 @@ function cloudCard(ctx) {
   const outBtn = el('button', { class: 'btn btn-block btn-ghost', type: 'button', text: 'SIGN OUT', style: 'margin-top:8px' });
   outBtn.addEventListener('click', () => confirmSheet({
     title: 'Sign out',
-    message: 'This device stops syncing. Everything stored on it stays here, and your cloud copy is untouched.',
+    message: 'You will need your email and password to open the app on this device again. Everything stored here stays, and your cloud copy is untouched.',
     confirmLabel: 'Sign out',
-    onConfirm: async () => { await signOut(); toast('Signed out'); ctx.rerender(); }
+    onConfirm: async () => { await signOut(); toast('Signed out'); }
   }));
 
   card.append(syncBtn, outBtn);

@@ -5,7 +5,7 @@
 import { el } from './util.js';
 import { storage } from './storage.js';
 import { initStore, getActiveSession, getSettings } from './store.js';
-import { icon, closeAllSheets } from './ui/components.js';
+import { icon, closeAllSheets, toast } from './ui/components.js';
 import { showLock } from './ui/lock.js';
 import { renderTrain } from './ui/train.js';
 import { renderWorkout } from './ui/workout.js';
@@ -13,7 +13,8 @@ import { renderProgramList, renderProgramDetail, renderDayEditor, renderLibrary 
 import { renderHistory, renderSessionDetail, renderExerciseDetail } from './ui/history.js';
 import { renderMore } from './ui/more.js';
 import { resync } from './ui/resttimer.js';
-import { initCloud, scheduleSync } from './cloud.js';
+import { initCloud, scheduleSync, cloudConfigured, cloudStatus, onCloudStatus } from './cloud.js';
+import { showSignIn } from './ui/signin.js';
 
 const TABS = [
   { key: 'train', label: 'Train', icon: 'train', root: { tab: 'train', name: 'today' } },
@@ -28,7 +29,7 @@ const EDITING_ROUTES = ['workout', 'dayEditor'];
 let route = { tab: 'train', name: 'today' };
 let leaveHooks = [];
 let viewRoot = null;
-let started = false;      // false until the passcode is entered
+let started = false;      // false until signed in (or the passcode is entered)
 let navRoot = null;
 
 const ctx = {
@@ -39,6 +40,7 @@ const ctx = {
     render();
     scheduleSync();
     applyUpdateIfReady();
+    applySignOutIfPending();
     window.scrollTo(0, 0);
   },
   rerender() { render(); },
@@ -47,8 +49,29 @@ const ctx = {
     runLeaveHooks();
     closeAllSheets();
     showLock(() => render());
+  },
+  /** Back to the sign-in screen (after Sign out, or when the session is gone). */
+  requireSignIn() {
+    runLeaveHooks();
+    closeAllSheets();
+    started = false;
+    if (viewRoot) viewRoot.innerHTML = '';
+    showSignIn(afterSignIn);
   }
 };
+
+function afterSignIn({ syncError } = {}) {
+  start();
+  if (syncError) toast(`Signed in, but sync failed: ${syncError.message}`, 'warn', 5000);
+  else toast('Signed in · synced');
+}
+
+function start() {
+  started = true;
+  const live = getActiveSession();
+  route = live ? { tab: 'train', name: 'workout', sessionId: live.id } : { tab: 'train', name: 'today' };
+  render();
+}
 
 function runLeaveHooks() {
   leaveHooks.forEach((fn) => { try { fn(); } catch (e) { /* ignore */ } });
@@ -111,14 +134,12 @@ function boot() {
   viewRoot = document.getElementById('app');
   buildNav();
 
-  const start = () => {
-    started = true;
-    const live = getActiveSession();
-    route = live ? { tab: 'train', name: 'workout', sessionId: live.id } : { tab: 'train', name: 'today' };
-    render();
-  };
-
-  if (storage.getUnlock()) start();
+  /* With cloud sync, the account sign-in is the gate (once per device).
+     Without it, the original passcode screen is. */
+  if (cloudConfigured()) {
+    if (cloudStatus().signedIn) start();
+    else showSignIn(afterSignIn);
+  } else if (storage.getUnlock()) start();
   else showLock(start);
 
   /* Keep the wall-clock timer honest after the app returns from background. */
@@ -135,6 +156,8 @@ function boot() {
     canApply: () => !EDITING_ROUTES.includes(route.name),
     onRemoteData: () => { if (started) render(); }
   });
+  /* The account was signed out (Sign out, or the session could not be renewed). */
+  onCloudStatus((st) => { if (st.configured && !st.signedIn && started) signOutPending = true; applySignOutIfPending(); });
 
   /* Keep the screen awake during a workout where supported. */
   let wakeLock = null;
@@ -159,6 +182,14 @@ function boot() {
    and reload once the new version has taken over. Never reload mid-workout —
    that waits until the workout screen is left. */
 let updateReady = false;
+let signOutPending = false;
+
+function applySignOutIfPending() {
+  if (signOutPending && started && !EDITING_ROUTES.includes(route.name)) {
+    signOutPending = false;
+    ctx.requireSignIn();
+  }
+}
 
 function applyUpdateIfReady() {
   if (updateReady && !EDITING_ROUTES.includes(route.name)) {
