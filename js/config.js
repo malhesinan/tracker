@@ -65,8 +65,8 @@ export const IMAGE_SOURCE = {
    supabase/schema.sql limits every row to the account that owns it.
    ------------------------------------------------------------------------ */
 export const CLOUD = {
-  url: '',          // https://<project-ref>.supabase.co
-  anonKey: '',      // Project Settings → API → anon public key
+  url: 'https://evmqjvtinsounlcgmtnk.supabase.co',
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2bXFqdnRpbnNvdW5sY2dtdG5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MTQ2MDcsImV4cCI6MjEwNzQ5MDYwN30.iD-yAjvxantlLXEwQ6zlbr66zAIy0ScoHceoHSGbOHM',
   table: 'records',
   syncDelayMs: 2000,
   /* Settings that belong to one device and are never synced. */
