@@ -201,6 +201,10 @@ Export regularly.
 
 ## Changelog
 
+**1.2.1**
+- Updates now arrive reliably on an installed iPhone app: the app checks for a new version each time it comes to the front and reloads itself once it is downloaded (never mid-workout)
+- A new version no longer picks up stale files from the browser cache
+
 **1.2.0**
 - Cloud sync with Supabase: email sign-in, automatic two-way sync, offline-first (works with no signal and catches up when back online)
 - The first sign-in uploads everything already on the device, so an existing log moves to the database without an export/import step

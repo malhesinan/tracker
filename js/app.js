@@ -38,6 +38,7 @@ const ctx = {
     route = next;
     render();
     scheduleSync();
+    applyUpdateIfReady();
     window.scrollTo(0, 0);
   },
   rerender() { render(); },
@@ -149,11 +150,38 @@ function boot() {
   document.addEventListener('visibilitychange', requestWake);
   setInterval(requestWake, 30000);
 
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./service-worker.js').catch(() => { /* offline install optional */ });
-    });
+  if ('serviceWorker' in navigator) registerWorker();
+}
+
+/* ---------------------------------------------------------------- updates
+   A Home Screen app on iPhone is usually resumed, not relaunched, so it would
+   rarely look for a new version. Check whenever the app comes to the front,
+   and reload once the new version has taken over. Never reload mid-workout —
+   that waits until the workout screen is left. */
+let updateReady = false;
+
+function applyUpdateIfReady() {
+  if (updateReady && !EDITING_ROUTES.includes(route.name)) {
+    updateReady = false;
+    window.location.reload();
   }
+}
+
+function registerWorker() {
+  const hadController = Boolean(navigator.serviceWorker.controller);
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController) return;          // first install, nothing old to replace
+    updateReady = true;
+    applyUpdateIfReady();
+  });
+
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').then((reg) => {
+      const check = () => { if (navigator.onLine) reg.update().catch(() => { /* offline */ }); };
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+      setInterval(check, 30 * 60 * 1000);
+    }).catch(() => { /* offline install optional */ });
+  });
 }
 
 document.addEventListener('DOMContentLoaded', boot);
