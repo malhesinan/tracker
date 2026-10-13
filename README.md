@@ -10,7 +10,8 @@ screen (**9977**, set in `js/config.js`) is used instead.
 
 Exercise images come from the ExerciseDB free tier operated by AscendAPI —
 a public endpoint, no key and no sign-up. Only the image links are stored;
-nothing is rehosted. Download them once from **More → Exercise images**.
+nothing is rehosted. Built-in exercises link to their image directly; custom
+exercises are matched by downloading the catalogue from **More → Exercise images**.
 
 ---
 
@@ -210,6 +211,11 @@ Export regularly.
 ---
 
 ## Changelog
+
+**1.3.1**
+- Exercise images no longer depend on downloading the ExerciseDB catalogue. The free endpoint is rate limited and can stop answering after a page or two, which left only about a dozen exercises with images
+- 106 of the 112 built-in exercises now record the ExerciseDB id of the same exercise and show its image straight away, with no download; wrong guesses such as Dumbbell Curl showing a Zottman curl are gone
+- Download/refresh in More → Exercise images now only matches custom exercises and the six built-ins ExerciseDB has no equivalent for (Dumbbell Floor Press, Hollow Hold, Rowing Machine, Sled Push, Indoor Walk, Box Jump)
 
 **1.3.0**
 - Sign-in is required when the app opens: email and password once per device, replacing the passcode screen

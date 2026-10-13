@@ -2,8 +2,16 @@
    EXERCISE IMAGES
    ----------------------------------------------------------------------------
    Demonstration images come from ExerciseDB's free tier, operated by AscendAPI:
-   a public endpoint, no key, no sign-up. We fetch the catalogue once, match it
-   against our own library by name and alias, and store only a map of
+   a public endpoint, no key, no sign-up.
+
+   Built-in exercises record the ExerciseDB id of the same exercise, so their
+   image URL is known up front and needs no download. The free endpoint is
+   rate limited and often stops answering after a page or two, which made a
+   full catalogue download unreliable.
+
+   For everything else (custom exercises, and the few built-ins with no
+   counterpart) we fetch the catalogue, match it by name and alias, and store
+   only a map of
 
        our exercise id  ->  their media URL
 
@@ -53,7 +61,8 @@ export function clearImages() {
  * Resolve the image for an exercise, in priority order:
  *   1. a per-prescription override (programme level)
  *   2. an image saved on the exercise itself (yours, or a custom exercise)
- *   3. the downloaded ExerciseDB match
+ *   3. the ExerciseDB id recorded on a built-in exercise
+ *   4. the downloaded ExerciseDB match
  * Returns { url, attribution, license, source } or null.
  */
 export function imageFor(exercise, prescription, settings) {
@@ -64,6 +73,15 @@ export function imageFor(exercise, prescription, settings) {
     return exercise.image;
   }
   if (settings && settings.exerciseImages === false) return null;
+
+  if (exercise && exercise.exerciseDbId) {
+    return {
+      url: `${IMAGE_SOURCE.mediaBase}/${exercise.exerciseDbId}.gif`,
+      source: IMAGE_SOURCE.endpoint,
+      attribution: IMAGE_SOURCE.attribution,
+      license: IMAGE_SOURCE.license
+    };
+  }
 
   const c = loadImageCache();
   if (!c || !c.map || !exercise) return null;
@@ -204,12 +222,14 @@ async function searchRemote(name) {
 }
 
 /**
- * Download the catalogue and build the id -> url map.
- * @param {Array} exercises  our own library
+ * Download the catalogue and build the id -> url map for the exercises that
+ * do not already carry an ExerciseDB id.
+ * @param {Array} library  our own library
  * @param {Function} onProgress  called with ({ page, fetched })
  */
-export async function syncImages(exercises, onProgress) {
+export async function syncImages(library, onProgress) {
   if (inFlight) return inFlight;
+  const exercises = library.filter((ex) => !ex.exerciseDbId);
 
   inFlight = (async () => {
     const remote = await fetchCatalogue(onProgress);
