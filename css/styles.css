@@ -763,6 +763,13 @@ body.resting .toast-host { bottom: calc(var(--nav-h) + var(--sab) + 118px); }
 }
 .dots i.filled { background: var(--accent); border-color: var(--accent); transform: scale(1.08); }
 .lock.error .dots { animation: shake .4s ease; }
+/* sign-in (shares the lock screen's frame) */
+.signin .lock-top { justify-content: flex-start; padding-top: 12vh; }
+.signin-form { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 10px; margin-top: var(--s2); }
+.signin-form .btn { margin-top: 6px; }
+.signin-err { font-size: 13px; line-height: 1.45; color: var(--accent); text-align: center; min-height: 18px; }
+.signin.error .signin-form { animation: shake .4s ease; }
+.signin-hint { font-size: 12px; line-height: 1.5; color: var(--text-dim); text-align: center; max-width: 300px; }
 .lock-err { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); min-height: 18px; }
 
 .keypad {

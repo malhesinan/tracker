@@ -3,7 +3,10 @@
 A mobile-first, offline-first workout logger. No build step, no dependencies.
 Plain HTML, CSS and ES modules, with optional cloud sync to Supabase.
 
-Passcode: **9977** (set in `js/config.js`).
+Opening the app asks for your email and password once per device (your
+Supabase account, see **Cloud sync** below). The device then stays signed in
+until **More → Sign out**. Without cloud sync configured, the old passcode
+screen (**9977**, set in `js/config.js`) is used instead.
 
 Exercise images come from the ExerciseDB free tier operated by AscendAPI —
 a public endpoint, no key and no sign-up. Only the image links are stored;
@@ -65,14 +68,15 @@ One-time setup, about ten minutes:
 3. **Authentication → Sign In / Providers**: turn off **Allow new users to sign up**,
    so nobody else can create an account on your project.
 4. **Authentication → Users → Add user → Create new user**: your email and a
-   password, with **Auto Confirm User** ticked.
+   password, with **Auto Confirm User** ticked. This is the email and password
+   the app asks for when it opens.
 5. **Project Settings → API**: copy the **Project URL** and the **anon public**
    key into `CLOUD.url` and `CLOUD.anonKey` in `js/config.js`, then deploy.
    The anon key is meant to be public; the RLS policies are what protect the data.
 
 **Moving your existing data in:** export a backup first (**More → Data →
-Export all data**). Then open the updated app on the phone that holds the data,
-go to **More → Cloud sync** and sign in. The first sign-in on a device does this:
+Export all data**). Then open the updated app on the phone that holds the data
+and sign in — do the phone first, before any other device. The first sign-in on a device does this:
 
 | Cloud | This device | Result |
 |---|---|---|
@@ -112,7 +116,13 @@ Export regularly.
 - [ ] With no connection, the download fails with a clear message and nothing else breaks
 - [ ] Revisit a workout offline: images seen before still appear (service worker cache)
 
-**Lock**
+**Sign-in** (cloud sync configured)
+- [ ] First launch shows the sign-in screen, not the passcode
+- [ ] A wrong password says "Wrong email or password."
+- [ ] Signing in opens Train; relaunching does not ask again
+- [ ] More → Sign out returns to the sign-in screen
+
+**Lock** (cloud sync not configured)
 - [ ] Wrong code shakes and clears; right code (9977) opens the app
 - [ ] Close and relaunch → passcode asked again
 - [ ] More → "Stay unlocked on this device" on → relaunch skips the passcode
@@ -200,6 +210,11 @@ Export regularly.
 ---
 
 ## Changelog
+
+**1.3.0**
+- Sign-in is required when the app opens: email and password once per device, replacing the passcode screen
+- Sign-in errors say what to fix (wrong password, unconfirmed account, missing table, no connection)
+- When a second device that already has data joins, only one programme stays active
 
 **1.2.1**
 - Updates now arrive reliably on an installed iPhone app: the app checks for a new version each time it comes to the front and reloads itself once it is downloaded (never mid-workout)
