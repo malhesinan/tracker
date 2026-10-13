@@ -6,7 +6,7 @@
    refresh so a new deploy is picked up on the next launch.
    ========================================================================== */
 
-const VERSION = 'workout-tracker-v1.1.1';
+const VERSION = 'workout-tracker-v1.2.0';
 const SHELL = [
   './',
   './index.html',
@@ -20,6 +20,7 @@ const SHELL = [
   './js/stats.js',
   './js/prescription.js',
   './js/images.js',
+  './js/cloud.js',
   './js/data/exercises.js',
   './js/data/seed.js',
   './js/ui/components.js',
@@ -58,6 +59,9 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
+
+  // Cloud sync talks to Supabase directly and must never be served from cache.
+  if (url.hostname.endsWith('.supabase.co') || url.pathname.startsWith('/rest/v1/') || url.pathname.startsWith('/auth/v1/')) return;
 
   // Navigation: serve the shell so a cold offline launch still works.
   if (request.mode === 'navigate') {

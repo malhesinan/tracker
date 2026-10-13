@@ -7,7 +7,7 @@ export const APP = {
   name: 'Workout Tracker',
   shortName: 'Workout',
   tagline: 'Training log',
-  version: '1.1.1',
+  version: '1.2.0',
   schemaVersion: 4
 };
 
@@ -27,7 +27,9 @@ export const STORAGE_KEYS = {
   meta:       PREFIX + 'meta',
   backup:     PREFIX + 'backup',
   unlock:     PREFIX + 'unlock',
-  imageCache: PREFIX + 'imagecache'
+  imageCache: PREFIX + 'imagecache',
+  auth:       PREFIX + 'auth',
+  sync:       PREFIX + 'sync'
 };
 
 /* Keys used by version 1.0 (app name "REDLINE"). Migrated once, then ignored. */
@@ -55,6 +57,20 @@ export const IMAGE_SOURCE = {
   pageSize: 100,
   maxPages: 60,
   requestSpacingMs: 80
+};
+
+/* ---------------------------------------------------------------------------
+   Cloud sync — Supabase. Leave both empty to keep the app device-only.
+   The anon key is designed to be public: Row Level Security in
+   supabase/schema.sql limits every row to the account that owns it.
+   ------------------------------------------------------------------------ */
+export const CLOUD = {
+  url: 'https://evmqjvtinsounlcgmtnk.supabase.co',
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2bXFqdnRpbnNvdW5sY2dtdG5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MTQ2MDcsImV4cCI6MjEwNzQ5MDYwN30.iD-yAjvxantlLXEwQ6zlbr66zAIy0ScoHceoHSGbOHM',
+  table: 'records',
+  syncDelayMs: 2000,
+  /* Settings that belong to one device and are never synced. */
+  deviceOnlySettings: ['rememberUnlock', 'firstRun']
 };
 
 export const DEFAULT_SETTINGS = {

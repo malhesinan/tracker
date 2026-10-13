@@ -13,6 +13,7 @@ import { renderProgramList, renderProgramDetail, renderDayEditor, renderLibrary 
 import { renderHistory, renderSessionDetail, renderExerciseDetail } from './ui/history.js';
 import { renderMore } from './ui/more.js';
 import { resync } from './ui/resttimer.js';
+import { initCloud, scheduleSync } from './cloud.js';
 
 const TABS = [
   { key: 'train', label: 'Train', icon: 'train', root: { tab: 'train', name: 'today' } },
@@ -21,9 +22,13 @@ const TABS = [
   { key: 'more', label: 'More', icon: 'more', root: { tab: 'more', name: 'settings' } }
 ];
 
+/* Screens holding unsaved input; remote data waits until they close. */
+const EDITING_ROUTES = ['workout', 'dayEditor'];
+
 let route = { tab: 'train', name: 'today' };
 let leaveHooks = [];
 let viewRoot = null;
+let started = false;      // false until the passcode is entered
 let navRoot = null;
 
 const ctx = {
@@ -32,6 +37,7 @@ const ctx = {
     closeAllSheets();
     route = next;
     render();
+    scheduleSync();
     window.scrollTo(0, 0);
   },
   rerender() { render(); },
@@ -105,6 +111,7 @@ function boot() {
   buildNav();
 
   const start = () => {
+    started = true;
     const live = getActiveSession();
     route = live ? { tab: 'train', name: 'workout', sessionId: live.id } : { tab: 'train', name: 'today' };
     render();
@@ -121,7 +128,12 @@ function boot() {
     }
   });
 
-  window.addEventListener('online', () => { /* nothing to sync yet — offline first */ });
+  /* Cloud sync. Data from other devices is never swapped in mid-workout;
+     it is picked up on the next sync after the workout or editor closes. */
+  initCloud({
+    canApply: () => !EDITING_ROUTES.includes(route.name),
+    onRemoteData: () => { if (started) render(); }
+  });
 
   /* Keep the screen awake during a workout where supported. */
   let wakeLock = null;
