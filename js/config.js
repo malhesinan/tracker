@@ -7,7 +7,7 @@ export const APP = {
   name: 'Workout Tracker',
   shortName: 'Workout',
   tagline: 'Training log',
-  version: '1.3.1',
+  version: '1.3.2',
   schemaVersion: 4
 };
 
@@ -71,6 +71,10 @@ export const CLOUD = {
   url: 'https://evmqjvtinsounlcgmtnk.supabase.co',
   anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2bXFqdnRpbnNvdW5sY2dtdG5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MTQ2MDcsImV4cCI6MjEwNzQ5MDYwN30.iD-yAjvxantlLXEwQ6zlbr66zAIy0ScoHceoHSGbOHM',
   table: 'records',
+  /* Supabase signs in with an email, so a username is turned into one:
+     "alex" → "alex@workout.local". Nothing is ever sent to it. Create the
+     user in Supabase with that address. Typing a full email still works. */
+  usernameDomain: 'workout.local',
   syncDelayMs: 2000,
   /* Settings that belong to one device and are never synced. */
   deviceOnlySettings: ['rememberUnlock', 'firstRun']

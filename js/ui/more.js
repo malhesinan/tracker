@@ -131,18 +131,18 @@ function cloudCard(ctx) {
   }
 
   if (!st.signedIn) {
-    const email = el('input', { class: 'input', type: 'email', autocomplete: 'username', placeholder: 'you@example.com', 'aria-label': 'Email' });
+    const username = el('input', { class: 'input', type: 'text', autocomplete: 'username', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', placeholder: 'Username', 'aria-label': 'Username' });
     const password = el('input', { class: 'input', type: 'password', autocomplete: 'current-password', placeholder: 'Password', 'aria-label': 'Password', style: 'margin-top:8px' });
     const message = el('div', { class: 'hint', text: st.error && /sign in/i.test(st.error) ? st.error :
       'Sign in to back up this device and keep your other devices in step. The first sign-in uploads everything stored here.' });
     const btn = el('button', { class: 'btn btn-block btn-primary', type: 'button', text: 'SIGN IN', style: 'margin-top:12px' });
 
     const submit = async () => {
-      if (!email.value.trim() || !password.value) { (email.value.trim() ? password : email).focus(); return; }
+      if (!username.value.trim() || !password.value) { (username.value.trim() ? password : username).focus(); return; }
       btn.disabled = true;
       btn.textContent = 'SIGNING IN…';
       try {
-        const result = await signIn(email.value.trim(), password.value);
+        const result = await signIn(username.value.trim(), password.value);
         toast(result && result.pushed ? `Signed in · ${result.pushed} records uploaded` : 'Signed in · synced');
         ctx.rerender();
       } catch (e) {
@@ -156,11 +156,11 @@ function cloudCard(ctx) {
     btn.addEventListener('click', submit);
     password.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
 
-    card.append(email, password, btn, message);
+    card.append(username, password, btn, message);
     return card;
   }
 
-  card.appendChild(kv('Account', st.email || 'Signed in'));
+  card.appendChild(kv('Account', st.username || 'Signed in'));
   const statusValue = el('div', { class: 'v' });
   card.appendChild(el('div', { class: 'kv' }, [el('div', { class: 'k', text: 'Status' }), statusValue]));
   const errorLine = el('div', { class: 'hint' });
@@ -196,7 +196,7 @@ function cloudCard(ctx) {
   const outBtn = el('button', { class: 'btn btn-block btn-ghost', type: 'button', text: 'SIGN OUT', style: 'margin-top:8px' });
   outBtn.addEventListener('click', () => confirmSheet({
     title: 'Sign out',
-    message: 'You will need your email and password to open the app on this device again. Everything stored here stays, and your cloud copy is untouched.',
+    message: 'You will need your username and password to open the app on this device again. Everything stored here stays, and your cloud copy is untouched.',
     confirmLabel: 'Sign out',
     onConfirm: async () => { await signOut(); toast('Signed out'); }
   }));

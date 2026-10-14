@@ -1,7 +1,7 @@
 /* ============================================================================
    SIGN-IN SCREEN
    ----------------------------------------------------------------------------
-   The gate when cloud sync is configured: email + password once per device,
+   The gate when cloud sync is configured: username + password once per device,
    then the device stays signed in until Sign out. Replaces the passcode.
    ========================================================================== */
 
@@ -13,9 +13,9 @@ let node = null;
 export function showSignIn(onSignedIn) {
   if (node) return;
 
-  const email = el('input', {
-    class: 'input', type: 'email', autocomplete: 'username', inputmode: 'email',
-    autocapitalize: 'off', spellcheck: 'false', placeholder: 'Email', 'aria-label': 'Email'
+  const username = el('input', {
+    class: 'input', type: 'text', autocomplete: 'username', autocorrect: 'off',
+    autocapitalize: 'off', spellcheck: 'false', placeholder: 'Username', 'aria-label': 'Username'
   });
   const password = el('input', {
     class: 'input', type: 'password', autocomplete: 'current-password',
@@ -24,7 +24,7 @@ export function showSignIn(onSignedIn) {
   const err = el('div', { class: 'signin-err', role: 'alert' });
   const btn = el('button', { class: 'btn btn-primary btn-lg btn-block', type: 'submit', text: 'SIGN IN' });
 
-  const form = el('form', { class: 'signin-form', novalidate: true }, [email, password, btn, err]);
+  const form = el('form', { class: 'signin-form', novalidate: true }, [username, password, btn, err]);
 
   node = el('div', { class: 'lock signin', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Sign in' }, [
     el('div', { class: 'lock-top' }, [
@@ -41,8 +41,8 @@ export function showSignIn(onSignedIn) {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     err.textContent = '';
-    const address = email.value.trim();
-    if (!address) { email.focus(); return; }
+    const name = username.value.trim();
+    if (!name) { username.focus(); return; }
     if (!password.value) { password.focus(); return; }
     if (!navigator.onLine) {
       err.textContent = 'No connection. Signing in needs the internet once — after that the app works offline.';
@@ -53,7 +53,7 @@ export function showSignIn(onSignedIn) {
     btn.textContent = 'SIGNING IN…';
     let syncError = null;
     try {
-      await signIn(address, password.value);
+      await signIn(name, password.value);
     } catch (e2) {
       if (!e2.signedIn) {
         err.textContent = e2.message || 'Sign-in failed';
@@ -76,7 +76,7 @@ export function showSignIn(onSignedIn) {
     }, 240);
   });
 
-  setTimeout(() => email.focus(), 300);
+  setTimeout(() => username.focus(), 300);
 }
 
 function teardown() {

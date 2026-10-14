@@ -3,7 +3,7 @@
 A mobile-first, offline-first workout logger. No build step, no dependencies.
 Plain HTML, CSS and ES modules, with optional cloud sync to Supabase.
 
-Opening the app asks for your email and password once per device (your
+Opening the app asks for your username and password once per device (your
 Supabase account, see **Cloud sync** below). The device then stays signed in
 until **More → Sign out**. Without cloud sync configured, the old passcode
 screen (**9977**, set in `js/config.js`) is used instead.
@@ -68,9 +68,13 @@ One-time setup, about ten minutes:
    `workout_sets` (one row per set), for querying your history.
 3. **Authentication → Sign In / Providers**: turn off **Allow new users to sign up**,
    so nobody else can create an account on your project.
-4. **Authentication → Users → Add user → Create new user**: your email and a
-   password, with **Auto Confirm User** ticked. This is the email and password
-   the app asks for when it opens.
+4. **Authentication → Users → Add user → Create new user**: for the email,
+   enter your chosen username followed by `@workout.local` (for example
+   `alex@workout.local`), plus a password, with **Auto Confirm User** ticked.
+   In the app you then sign in with just `alex` and the password. Supabase
+   only signs in by email, so the app adds the `@workout.local` part for you
+   (`CLOUD.usernameDomain` in `js/config.js`); nothing is ever sent to it.
+   Typing a full email address in the username box still works.
 5. **Project Settings → API**: copy the **Project URL** and the **anon public**
    key into `CLOUD.url` and `CLOUD.anonKey` in `js/config.js`, then deploy.
    The anon key is meant to be public; the RLS policies are what protect the data.
@@ -119,7 +123,7 @@ Export regularly.
 
 **Sign-in** (cloud sync configured)
 - [ ] First launch shows the sign-in screen, not the passcode
-- [ ] A wrong password says "Wrong email or password."
+- [ ] A wrong password says "Wrong username or password."
 - [ ] Signing in opens Train; relaunching does not ask again
 - [ ] More → Sign out returns to the sign-in screen
 
@@ -211,6 +215,9 @@ Export regularly.
 ---
 
 ## Changelog
+
+**1.3.2**
+- Sign in with a username and password instead of an email. The username maps to `<username>@workout.local` in Supabase; a full email address still works, so existing accounts are unaffected
 
 **1.3.1**
 - Exercise images no longer depend on downloading the ExerciseDB catalogue. The free endpoint is rate limited and can stop answering after a page or two, which left only about a dozen exercises with images

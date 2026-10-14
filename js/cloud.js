@@ -26,6 +26,19 @@ const PULL_OVERLAP_MS = 60000;   // re-read a minute back so no commit is missed
 
 export const cloudConfigured = () => Boolean(CLOUD.url && CLOUD.anonKey);
 
+/** "alex" → "alex@workout.local"; a full email is left as it is. */
+export function usernameToEmail(name) {
+  const n = String(name || '').trim().toLowerCase();
+  return n.includes('@') ? n : `${n}@${CLOUD.usernameDomain}`;
+}
+
+/** The reverse, for display: the username, or the email if it is a real one. */
+export function displayName(email) {
+  if (!email) return null;
+  const suffix = '@' + CLOUD.usernameDomain;
+  return email.toLowerCase().endsWith(suffix) ? email.slice(0, -suffix.length) : email;
+}
+
 /* ------------------------------------------------------------------ status */
 const status = { syncing: false, lastSyncAt: null, error: null };
 const listeners = new Set();
@@ -37,6 +50,7 @@ export function cloudStatus() {
     configured: cloudConfigured(),
     signedIn: Boolean(auth),
     email: auth ? auth.email : null,
+    username: auth ? displayName(auth.email) : null,
     syncing: status.syncing,
     lastSyncAt: status.lastSyncAt || (sync && sync.lastSyncAt) || null,
     error: status.error
@@ -130,7 +144,7 @@ class CloudError extends Error {
 function friendlyAuthError(json, httpStatus) {
   const raw = json.error_description || json.msg || json.message || '';
   const code = json.error_code || json.code || '';
-  if (code === 'invalid_credentials' || /invalid login credentials/i.test(raw)) return 'Wrong email or password.';
+  if (code === 'invalid_credentials' || /invalid login credentials/i.test(raw)) return 'Wrong username or password.';
   if (code === 'email_not_confirmed' || /not confirmed/i.test(raw)) {
     return 'This account is not confirmed yet. In Supabase, open Authentication → Users and confirm it (or re-create it with Auto Confirm ticked).';
   }
@@ -167,10 +181,10 @@ function saveTokens(json) {
   return auth;
 }
 
-export async function signIn(email, password) {
+export async function signIn(username, password) {
   if (!cloudConfigured()) throw new CloudError('Cloud sync is not configured.');
   const previous = storage.loadAuth();
-  const json = await authRequest('token?grant_type=password', { email, password });
+  const json = await authRequest('token?grant_type=password', { email: usernameToEmail(username), password });
   const auth = saveTokens(json);
   // A different account must not inherit this device's sync bookkeeping.
   const sync = storage.loadSyncState();
