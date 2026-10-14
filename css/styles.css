@@ -436,6 +436,8 @@ h1, h2, h3, h4, p { margin: 0; }
   font-variant-numeric: tabular-nums; text-align: center;
 }
 .set-row.is-done .setno { color: var(--accent); }
+.set-row .setno.removable { cursor: pointer; border-radius: 6px; padding: 6px 0; }
+.set-row .setno.removable:active { background: var(--surface); }
 
 .stepper {
   display: grid;
@@ -500,7 +502,7 @@ h1, h2, h3, h4, p { margin: 0; }
 }
 
 .set-actions { display: flex; gap: var(--s2); margin-top: var(--s3); }
-.set-actions .btn { flex: 1; }
+.set-actions .btn { flex: 1; min-width: 0; padding: 0 6px; letter-spacing: 0.04em; white-space: nowrap; }
 
 /* --------------------------------------------------------- rest timer */
 .rest-dock {
