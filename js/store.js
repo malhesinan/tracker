@@ -7,7 +7,7 @@
 
 import { storage } from './storage.js';
 import { BUILTIN_EXERCISES } from './data/exercises.js';
-import { SEED_BUILDERS } from './data/seed.js';
+import { SEED_BUILDERS, UPPER_LOWER_REVISION, applyUpperLowerRevision } from './data/seed.js';
 import { uid, clone } from './util.js';
 import { plannedSetCount, defaultSetValues, setHasValue, setVolume, estimated1RM } from './prescription.js';
 import { APP } from './config.js';
@@ -35,6 +35,7 @@ export function initStore() {
     state.meta = { schemaVersion: APP.schemaVersion, createdAt: Date.now(), seeded: [] };
   }
   applySeeds();
+  applyProgramRevisions();
   if (state.settings.firstRun) {
     state.settings.firstRun = false;
     storage.saveSettings(state.settings);
@@ -69,6 +70,21 @@ function applySeeds() {
   state.meta = { ...state.meta, schemaVersion: APP.schemaVersion, seeded };
   storage.saveMeta(state.meta);
   if (added) storage.savePrograms(state.programs);
+}
+
+/**
+ * Bring a built-in programme up to its latest layout. Only the programme's
+ * days change: logged sessions carry their own copy of every prescription,
+ * so history is untouched, and the lifting days keep their ids. A backup is
+ * taken first (More → Data → Restore last backup).
+ */
+function applyProgramRevisions() {
+  const program = state.programs.find((p) => p.seedId === 'fat-loss-block');
+  if (!program || (program.seedRevision || 1) >= UPPER_LOWER_REVISION) return;
+  storage.makeBackup('before-upper-lower-update');
+  applyUpperLowerRevision(program);
+  touch(program);
+  storage.savePrograms(state.programs);
 }
 
 export function reloadFromStorage() {
