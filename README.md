@@ -146,6 +146,7 @@ Export regularly.
 - [ ] COPY LAST fills the fields but marks nothing done
 - [ ] COPY LAST also copies last session's exercise note (unless a note is already written)
 - [ ] Last session's numbers appear as grey placeholders
+- [ ] Last session's exercise note shows under its sets in the LAST SESSION box
 
 **Prescription types**
 - [ ] Reps exercise shows KG + REPS
@@ -212,6 +213,9 @@ Export regularly.
 ---
 
 ## Changelog
+
+**1.3.3**
+- The LAST SESSION box now shows last session's exercise note under its sets
 
 **1.3.2**
 - COPY LAST also copies the exercise note from last session, unless you have already written one today
