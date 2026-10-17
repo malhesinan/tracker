@@ -578,7 +578,7 @@ export function updateLog(sessionId, logId, patch) {
   return log;
 }
 
-/** Copy the previous session's actual numbers into the planned fields. */
+/** Copy the previous session's actual numbers (and its note) into the planned fields. */
 export function copyLastSession(sessionId, logId) {
   const log = findLog(sessionId, logId);
   if (!log) return 0;
@@ -599,6 +599,8 @@ export function copyLastSession(sessionId, logId) {
     target.calories = p.calories;
     copied += 1;
   });
+  // Bring the note along, but never overwrite one already written today.
+  if (prev.notes && !(log.notes || '').trim()) log.notes = prev.notes;
   persistSessions();
   return copied;
 }
@@ -658,7 +660,7 @@ export function previousPerformance(exerciseId, excludeSessionId) {
       if (log.exerciseId !== exerciseId) continue;
       const done = (log.sets || []).filter((x) => x.done);
       if (done.length) {
-        return { sessionId: s.id, date: s.startedAt, sets: done, prescription: log.prescription };
+        return { sessionId: s.id, date: s.startedAt, sets: done, prescription: log.prescription, notes: log.notes || '' };
       }
     }
   }

@@ -169,17 +169,32 @@ function exerciseCard(session, log, index, ctx, screen) {
   copy.addEventListener('click', () => {
     const n = copyLastSession(session.id, log.id);
     haptic(10);
-    toast(n ? `Copied ${n} sets — nothing marked done` : 'No previous session to copy');
+    toast(n ? `Copied ${n} sets${prev.notes ? ' and note' : ''} — nothing marked done` : 'No previous session to copy');
     ctx.rerender();
   });
 
   const add = el('button', { class: 'btn btn-sm btn-outline', type: 'button', text: '+ SET' });
   add.addEventListener('click', () => { addSet(session.id, log.id); haptic(8); ctx.rerender(); });
 
+  const remove = el('button', { class: 'btn btn-sm btn-outline', type: 'button', text: '− SET' });
+  remove.disabled = log.sets.length <= 1;
+  remove.addEventListener('click', () => {
+    const lastIndex = log.sets.length - 1;
+    const last = log.sets[lastIndex];
+    // An untouched trailing set goes straight away; anything logged asks first.
+    if (!last.done && !setHasValue(last)) {
+      removeSet(session.id, log.id, last.id);
+      haptic(8);
+      ctx.rerender();
+    } else {
+      confirmRemoveSet(session, log, last, lastIndex, ctx);
+    }
+  });
+
   const note = el('button', { class: 'btn btn-sm btn-outline', type: 'button', text: log.notes ? 'NOTE •' : 'NOTE' });
   note.addEventListener('click', () => openNote(session, log, ctx));
 
-  actions.append(copy, add, note);
+  actions.append(copy, add, remove, note);
   body.appendChild(actions);
 
   if (rx.notes) body.appendChild(el('div', { class: 'hint', style: 'margin-top:12px', text: rx.notes }));
@@ -244,29 +259,16 @@ function setRow(session, log, set, index, fields, cols, ctx, prev) {
     ]));
   }
 
-  /* long-press a set number to remove it */
-  const no = row.firstChild;
-  let pressTimer = null;
-  const startPress = () => {
-    pressTimer = setTimeout(() => {
-      if (log.sets.length <= 1) return;
-      confirmSheet({
-        title: 'Remove set',
-        message: `Remove set ${index + 1} from ${log.name}?`,
-        confirmLabel: 'Remove',
-        onConfirm: () => { removeSet(session.id, log.id, set.id); ctx.rerender(); }
-      });
-    }, 550);
-  };
-  const endPress = () => clearTimeout(pressTimer);
-  no.addEventListener('touchstart', startPress, { passive: true });
-  no.addEventListener('touchend', endPress);
-  no.addEventListener('touchmove', endPress);
-  no.addEventListener('mousedown', startPress);
-  no.addEventListener('mouseup', endPress);
-  no.addEventListener('mouseleave', endPress);
-
   return row;
+}
+
+function confirmRemoveSet(session, log, set, index, ctx) {
+  confirmSheet({
+    title: 'Remove set',
+    message: `Remove set ${index + 1} from ${log.name}?`,
+    confirmLabel: 'Remove',
+    onConfirm: () => { removeSet(session.id, log.id, set.id); haptic(8); ctx.rerender(); }
+  });
 }
 
 function stepper(session, log, set, f, ctx, ghost) {
