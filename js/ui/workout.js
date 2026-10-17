@@ -259,20 +259,6 @@ function setRow(session, log, set, index, fields, cols, ctx, prev) {
     ]));
   }
 
-  /* tap a set number to remove that set */
-  const no = row.firstChild;
-  if (log.sets.length > 1) {
-    no.classList.add('removable');
-    no.setAttribute('role', 'button');
-    no.setAttribute('tabindex', '0');
-    no.setAttribute('aria-label', `Remove set ${index + 1}`);
-    const ask = () => confirmRemoveSet(session, log, set, index, ctx);
-    no.addEventListener('click', ask);
-    no.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ask(); }
-    });
-  }
-
   return row;
 }
 

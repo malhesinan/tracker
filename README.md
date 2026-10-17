@@ -141,7 +141,6 @@ Export regularly.
 - [ ] Typing into a field keeps focus (no re-render flicker)
 - [ ] Completing a set turns the row red and starts the rest timer
 - [ ] Completing the last set of an exercise collapses it and opens the next
-- [ ] Tap a set number → confirm → that set is removed
 - [ ] − SET removes the last set (asks first if it has values or is done)
 - [ ] + SET adds a set carrying the previous values
 - [ ] COPY LAST fills the fields but marks nothing done
@@ -216,7 +215,7 @@ Export regularly.
 
 **1.3.2**
 - COPY LAST also copies the exercise note from last session, unless you have already written one today
-- Sets can be deleted: tap a set number to remove that set, or use − SET to drop the last one
+- Sets can be deleted with the new − SET button, which removes the last set (asking first if it has values or is done). The hidden long-press on a set number is gone
 
 **1.3.1**
 - Exercise images no longer depend on downloading the ExerciseDB catalogue. The free endpoint is rate limited and can stop answering after a page or two, which left only about a dozen exercises with images

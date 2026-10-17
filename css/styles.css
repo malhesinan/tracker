@@ -436,8 +436,6 @@ h1, h2, h3, h4, p { margin: 0; }
   font-variant-numeric: tabular-nums; text-align: center;
 }
 .set-row.is-done .setno { color: var(--accent); }
-.set-row .setno.removable { cursor: pointer; border-radius: 6px; padding: 6px 0; }
-.set-row .setno.removable:active { background: var(--surface); }
 
 .stepper {
   display: grid;
