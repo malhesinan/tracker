@@ -214,6 +214,11 @@ Export regularly.
 
 ## Changelog
 
+**1.4.0**
+- The Fat Loss Block is now a 4-day upper/lower split with optional cardio: Upper A (Saturday), Lower A (Sunday), Upper B (Tuesday), Lower B (Wednesday), optional outdoor cardio Monday and Thursday, full rest Friday
+- Every exercise carries its RIR target and notes; the two arm supersets are marked Superset A and B, with no rest between the pair
+- Existing devices update the programme once on launch. Logged sessions are not touched, the four lifting days keep their ids so comparisons with earlier sessions still work, and a backup is taken first (More → Data → Restore last backup)
+
 **1.3.3**
 - The LAST SESSION box now shows last session's exercise note under its sets
 

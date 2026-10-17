@@ -44,72 +44,124 @@ function day(name, subtitle, dayOfWeek, estMinutes, notes, exercises) {
   };
 }
 
+/* ---------------------------------------------------------------------------
+   FAT LOSS BLOCK — 4-day upper/lower + optional cardio
+   Saturday Upper A, Sunday Lower A, Tuesday Upper B, Wednesday Lower B.
+   Monday and Thursday optional outdoor cardio, Friday full rest.
+
+   Ids are fixed rather than random, so two devices that each apply the
+   revision produce the same record and sync never sees a conflict.
+   ------------------------------------------------------------------------ */
+export const UPPER_LOWER_REVISION = 2;
+
+const UPPER_LOWER_DESCRIPTION = 'Fat loss with muscle retention/building (calorie deficit). '
+  + 'RIR = reps in reserve: how many more clean reps you could have done when you end the set. '
+  + 'Double progression: keep the weight until the top of the rep range is hit on all sets, then increase load. '
+  + 'Keep Lower A and Lower B 72 hours apart; never more than 2 lifting days in a row. '
+  + 'Daily steps: 8,000–10,000.';
+
+const WARM_UP = 'Warm-up: 5 min treadmill or rower, band pull-aparts plus day-specific movement prep, '
+  + 'then 4 ramp-up sets on the first heavy lift only.';
+
+function fixedDay(key, name, subtitle, dayOfWeek, estMinutes, notes, exercises) {
+  const d = day(name, subtitle, dayOfWeek, estMinutes, notes, exercises);
+  d.id = `day_ul_${key}`;
+  d.exercises.forEach((r, i) => { r.id = `rx_ul_${key}_${i + 1}`; });
+  return d;
+}
+
+const LIFTING_DAYS = ['Upper A', 'Lower A', 'Upper B', 'Lower B'];
+
+const postLiftWalk = () => rx('incline_treadmill_walk', [1], mins(20), 0, { load: 'none', notes: 'Post-lift, zone 2, 8–12% grade.' });
+
+/**
+ * The days of the upper/lower programme. Pass the current days to keep the
+ * ids of Upper A, Lower A, Upper B and Lower B, so logged sessions stay
+ * linked to the day they were done on.
+ */
+export function buildUpperLowerDays(existingDays = []) {
+  const days = [
+    fixedDay('upper_a', 'Upper A', 'Heavy horizontal press and row', 6, 75, WARM_UP, [
+      rx('incline_dumbbell_press', [3], reps(6, 8), 150, { notes: 'Heavy, 2–3 RIR.' }),
+      rx('chest_supported_row', [3], reps(6, 8), 150, { name: 'Chest-Supported Row — Overhand', notes: 'Heavy, 2–3 RIR.' }),
+      rx('dumbbell_bench_press', [3], reps(10, 12), 90, { name: 'Flat Dumbbell or Machine Press', notes: '1–2 RIR.' }),
+      rx('lat_pulldown', [3], reps(10, 12), 90, { name: 'Lat Pulldown — Wide Overhand', notes: '1–2 RIR.' }),
+      rx('dumbbell_lateral_raise', [3], reps(12, 15), 60, { notes: '0–1 RIR.' }),
+      rx('overhead_cable_extension', [3], reps(10, 12), 0, { name: 'Overhead Cable Triceps Extension', notes: 'Superset A. Go straight to the incline curl.' }),
+      rx('incline_dumbbell_curl', [3], reps(8, 12), 60, { notes: 'Superset A. Rest after the pair.' }),
+      postLiftWalk()
+    ]),
+
+    fixedDay('lower_a', 'Lower A', 'Squat focus', 0, 65, WARM_UP, [
+      rx('back_squat', [3], reps(5, 8), 180, { name: 'Squat', notes: 'Stop 1–2 reps short of failure.' }),
+      rx('romanian_deadlift', [3], reps(8, 10), 150, { notes: 'Stop 1–2 reps short of failure.' }),
+      rx('leg_press', [2], reps(12, 15), 90, { notes: '1–2 RIR.' }),
+      rx('lying_leg_curl', [3], reps(10, 12), 75, { name: 'Lying or Seated Leg Curl', notes: '1–2 RIR.' }),
+      rx('standing_calf_raise', [3], reps(8, 12), 60, { notes: '1s pause at the bottom.' }),
+      rx('hanging_leg_raise', [3], reps(10, 20), 60, { load: 'bodyweight', notes: 'Every set to failure.' }),
+      rx('farmers_carry', [3], metres(30, 40), 90, { name: 'Farmer\'s Walk', notes: 'Always last. Heaviest dumbbells you can carry upright for the full distance; move up one size when all 3 trips feel controlled.' })
+    ]),
+
+    fixedDay('cardio_mon', 'Optional Cardio', 'Outdoor · brisk walk or cycling', 1, 45, 'Conversational pace.', [
+      rx('indoor_walk', [1], mins(40, 45), 0, { load: 'none', name: 'Brisk Walk (~6 km/h) or Cycling', notes: 'Outdoors, conversational pace.' })
+    ]),
+
+    fixedDay('upper_b', 'Upper B', 'Vertical pull and shoulders', 2, 80, WARM_UP, [
+      rx('lat_pulldown', [3], reps(6, 8), 150, { name: 'Weighted Pull-Up or Lat Pulldown', notes: 'Heavy, 2–3 RIR.' }),
+      rx('seated_dumbbell_press', [3], reps(8, 10), 120, { name: 'Seated Shoulder Press', notes: '1–2 RIR.' }),
+      rx('dip_chest', [3], reps(10, 12), 90, { name: 'Cable Decline Press or Dip', notes: '1–2 RIR.' }),
+      rx('single_arm_cable_row', [2], reps(10, 12), 75, { name: 'Single-Arm Cable Row — Neutral', notes: 'Per arm; rest after both sides.' }),
+      rx('cable_lateral_raise', [3], reps(15, 20), 60, { name: 'Cable Lateral Raise — One Arm', notes: '0–1 RIR.' }),
+      rx('reverse_pec_deck', [3], reps(15, 20), 60, { name: 'Reverse Fly — Cable or Machine', notes: '0–1 RIR.' }),
+      rx('hammer_curl', [3], reps(10, 12), 0, { notes: 'Superset B. Go straight to the rope pushdown.' }),
+      rx('cable_pushdown', [3], reps(12, 15), 60, { name: 'Rope Pushdown', notes: 'Superset B. Rest after the pair.' }),
+      postLiftWalk()
+    ]),
+
+    fixedDay('lower_b', 'Lower B', 'Hip and single-leg focus', 3, 60, WARM_UP, [
+      rx('bulgarian_split_squat', [3], reps(8, 12), 120, { name: 'Bulgarian Split Squat or Hack Squat', notes: '1–2 RIR; per leg if unilateral.' }),
+      rx('hip_thrust', [3], reps(10, 12), 90, { name: 'Hip Thrust or 45° Back Extension', notes: '1–2 RIR.' }),
+      rx('leg_extension', [3], reps(12, 15), 60, { notes: '0–1 RIR.' }),
+      rx('seated_leg_curl', [3], reps(12, 15), 60, { notes: '0–1 RIR.' }),
+      rx('seated_calf_raise', [3], reps(12, 15), 60),
+      rx('cable_crunch', [3], reps(10, 15), 60)
+    ]),
+
+    fixedDay('cardio_thu', 'Optional Cardio', 'Outdoor · brisk walk or cycling', 4, 45, 'Conversational pace.', [
+      rx('indoor_walk', [1], mins(40, 45), 0, { load: 'none', name: 'Brisk Walk (~6 km/h) or Cycling', notes: 'Outdoors, conversational pace.' })
+    ]),
+
+    fixedDay('rest', 'Full Rest', 'Steps only', 5, 0, '8,000–10,000 steps.', [])
+  ];
+
+  days.forEach((d) => {
+    if (!LIFTING_DAYS.includes(d.name)) return;
+    const old = existingDays.find((o) => o.name === d.name && o.id);
+    if (old) d.id = old.id;
+  });
+  return days;
+}
+
+/** Apply the current upper/lower layout to a programme, in place. */
+export function applyUpperLowerRevision(program) {
+  program.name = 'Fat Loss Block';
+  program.description = UPPER_LOWER_DESCRIPTION;
+  program.days = buildUpperLowerDays(program.days || []);
+  program.seedRevision = UPPER_LOWER_REVISION;
+  return program;
+}
+
 export function buildSeedProgram() {
   const now = Date.now();
-  return {
+  return applyUpperLowerRevision({
     id: uid('prog'),
     seedId: 'fat-loss-block',
-    name: 'Fat Loss Block',
-    description: 'Four lifting days plus one conditioning day. Upper/lower split.',
     status: 'active',
     createdAt: now,
     updatedAt: now,
     version: 1,
-    days: [
-      day('Lower A', 'Squat-led · heaviest session', 0, 75,
-        'Eight-minute warm-up. Ramp on the squat only: empty bar × 10, 50% × 5, 75% × 3.', [
-          rx('back_squat', [4], reps(6, 8), 150, { cue: 'Brace before you unrack. Two seconds down.' }),
-          rx('leg_press', [4], reps(10, 12), 120, { cue: 'Feet mid-platform. Lower back stays on the pad.' }),
-          rx('seated_leg_curl', [3], reps(12, 15), 75, { cue: 'Squeeze at the bottom, three seconds back.' }),
-          rx('walking_lunge', [2], reps(12), 90, { cue: 'Per leg. Long stride, push through the front heel.' }),
-          rx('standing_calf_raise', [3], reps(12, 15), 60),
-          rx('hanging_knee_raise', [3], reps(12, 15), 60, { load: 'bodyweight' }),
-          rx('incline_treadmill_walk', [1], mins(20), 0, { load: 'none', cue: '5.5 km/h at 10–12%. Hands off the rails.' })
-        ]),
-
-      day('Upper A', 'Horizontal press and pull', 1, 70,
-        'Warm the shoulders properly: band pull-aparts and dislocates before you touch the bar.', [
-          rx('barbell_bench_press', [4], reps(6, 8), 150, { cue: 'Shoulder blades back and down. Bar to the lower chest.' }),
-          rx('chest_supported_row', [4], reps(8, 10), 120, { cue: 'Chest stays on the pad. Pull to the lower ribs.' }),
-          rx('lat_pulldown', [3], reps(10, 12), 90, { cue: 'Drive the elbows down and back.' }),
-          rx('seated_dumbbell_press', [3], reps(10, 12), 90),
-          rx('dumbbell_lateral_raise', [3], reps(12, 15), 60, { cue: 'Light and slow. Stop at shoulder height.' }),
-          rx('cable_pushdown', [3], reps(12, 15), 60),
-          rx('machine_ab_crunch', [3], reps(15), 60),
-          rx('incline_treadmill_walk', [1], mins(20), 0, { load: 'none', cue: 'Same protocol as every lifting day.' })
-        ]),
-
-      day('Cardio', 'No lifting · keep it easy', 2, 45,
-        'Log only the one you did. You should be able to hold a conversation throughout.', [
-          rx('incline_treadmill_walk', [1], mins(45), 0, { load: 'none', name: 'Incline Walk — default', cue: '5.5 km/h at 12%.' }),
-          rx('rowing_machine', [10], metres(250), 90, { load: 'none', name: 'Rowing Intervals — alternative', cue: 'Only if you skip the walk.' })
-        ]),
-
-      day('Lower B', 'Machine-led · easier on the back', 3, 75,
-        'Exercises 2 and 3 carry all your hip-hinge work. Do not skip them.', [
-          rx('hack_squat', [4], reps(8, 10), 150, { cue: 'Deep but controlled. Leg press if no hack squat.' }),
-          rx('back_extension', [3], reps(12, 15), 120, { load: 'bodyweight', cue: 'Hold a plate once bodyweight is easy.' }),
-          rx('cable_pull_through', [3], reps(12, 15), 90, { cue: 'Hips back, then snap forward. Your main hinge.' }),
-          rx('reverse_lunge', [3], reps(10), 90, { cue: 'Per leg. Step backwards, rear knee lightly down.' }),
-          rx('leg_extension', [3], reps(12, 15), 75, { cue: 'One-second pause at the top.' }),
-          rx('seated_calf_raise', [3], reps(15, 20), 60),
-          rx('cable_crunch', [3], reps(15), 60, { cue: 'Curl the spine down. Do not pull with the arms.' }),
-          rx('incline_treadmill_walk', [1], mins(20), 0, { load: 'none' })
-        ]),
-
-      day('Upper B', 'Vertical push + pull', 4, 70,
-        'The overhead press is the least forgiving lift here if you go into it cold.', [
-          rx('overhead_press', [4], reps(6, 8), 150, { cue: 'Glutes tight, ribs down. Head through at the top.' }),
-          rx('lat_pulldown', [4], reps(8, 10), 120, { name: 'Lat Pulldown — Wide Grip', cue: 'Wider than Monday. Full stretch at the top.' }),
-          rx('incline_dumbbell_press', [3], reps(10, 12), 90, { cue: 'Bench at 30°, no steeper.' }),
-          rx('seated_cable_row', [3], reps(10, 12), 90, { cue: 'Chest up, no rocking. Pull to the navel.' }),
-          rx('rear_delt_fly', [3], reps(15, 20), 60, { cue: 'Light. The best thing here for a desk job.' }),
-          rx('dumbbell_curl', [3], reps(10, 12), 60),
-          rx('hanging_knee_raise', [3], reps(12, 15), 60, { load: 'bodyweight' }),
-          rx('incline_treadmill_walk', [1], mins(20), 0, { load: 'none' })
-        ])
-    ]
-  };
+    days: []
+  });
 }
 
 

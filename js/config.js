@@ -7,7 +7,7 @@ export const APP = {
   name: 'Workout Tracker',
   shortName: 'Workout',
   tagline: 'Training log',
-  version: '1.3.3',
+  version: '1.4.0',
   schemaVersion: 4
 };
 
