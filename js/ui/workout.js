@@ -142,7 +142,8 @@ function exerciseCard(session, log, index, ctx, screen) {
         el('div', { class: 'eyebrow', text: 'LAST SESSION' }),
         el('div', { class: 'tiny dim', text: shortDate(prev.date) })
       ]),
-      el('div', { class: 'ls-sets' }, prev.sets.map((s) => el('div', { class: 'ls-set', text: setLabel(s, rx) })))
+      el('div', { class: 'ls-sets' }, prev.sets.map((s) => el('div', { class: 'ls-set', text: setLabel(s, rx) }))),
+      prev.notes ? el('div', { class: 'ls-note', text: prev.notes }) : null
     ]));
   }
 
