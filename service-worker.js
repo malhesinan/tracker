@@ -7,7 +7,7 @@
    whole shell, takes over at once, and the page reloads itself (see app.js).
    ========================================================================== */
 
-const VERSION = 'workout-tracker-v1.4.0';
+const VERSION = 'workout-tracker-v1.4.1';
 const SHELL = [
   './',
   './index.html',

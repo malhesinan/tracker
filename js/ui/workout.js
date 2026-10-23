@@ -19,6 +19,9 @@ import { icon, iconButton, sheet, confirmSheet, toast, topbar, field, segmented,
 import { imageFor } from '../images.js';
 import { startRest, stop as stopRest } from './resttimer.js';
 
+/* Rest after the last set of an exercise, before starting the next one. */
+const BETWEEN_EXERCISES_SEC = 120;
+
 let openLogId = null;
 let clockTimer = null;
 
@@ -245,6 +248,9 @@ function setRow(session, log, set, index, fields, cols, ctx, prev) {
       if (settings.restAutoStart && rest > 0 && remaining > 0) startRest(rest);
       if (remaining === 0) {
         stopRestIfIdle(log);
+        const next = nextUnfinished(session, log);
+        // No rest after a superset's first half (rest 0) or the workout's last exercise.
+        if (settings.restAutoStart && rest > 0 && next) startRest(BETWEEN_EXERCISES_SEC, next.name);
         advance(session, log);
       }
     }
@@ -341,6 +347,13 @@ function parseClock(raw) {
 
 function stopRestIfIdle(log) {
   if (log.prescription.restSec === 0) stopRest();
+}
+
+/** The exercise still to do after this one, wrapping to earlier unfinished ones. */
+function nextUnfinished(session, log) {
+  const i = session.logs.findIndex((l) => l.id === log.id);
+  const unfinished = (l) => !l.sets.every((s) => s.done);
+  return session.logs.slice(i + 1).find(unfinished) || session.logs.slice(0, i).find(unfinished) || null;
 }
 
 function advance(session, log) {

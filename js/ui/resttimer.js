@@ -19,7 +19,7 @@ let state = {
   remainingMs: 0,
   endsAt: 0,
   finished: false,
-  label: ''
+  next: ''
 };
 let tick = null;
 let audioCtx = null;
@@ -32,6 +32,7 @@ function build() {
   ui.plus60 = el('button', { class: 'btn btn-sm', type: 'button', text: '+60' });
   ui.skip = el('button', { class: 'btn btn-sm btn-primary', type: 'button', text: 'SKIP' });
   ui.fill = el('i', { style: 'width:100%' });
+  ui.next = el('div', { class: 'rest-next' });
 
   ui.pause.addEventListener('click', () => (state.paused ? resume() : pause()));
   ui.plus30.addEventListener('click', () => extend(30));
@@ -44,7 +45,8 @@ function build() {
       el('div', { class: 'grow' }),
       el('div', { class: 'rest-actions' }, [ui.plus30, ui.plus60, ui.pause, ui.skip])
     ]),
-    el('div', { class: 'bar rest-bar' }, [ui.fill])
+    el('div', { class: 'bar rest-bar' }, [ui.fill]),
+    ui.next
   ]);
   document.body.appendChild(dock);
 }
@@ -59,6 +61,8 @@ function render() {
   dock.classList.toggle('done', state.finished);
   ui.label.textContent = state.finished ? 'REST COMPLETE' : (state.paused ? 'REST — PAUSED' : 'REST');
   ui.skip.textContent = state.finished ? 'DONE' : 'SKIP';
+  ui.next.textContent = state.next ? `NEXT · ${state.next}` : '';
+  ui.next.hidden = !state.next;
 }
 
 function loop() {
@@ -102,7 +106,8 @@ function beep() {
 }
 
 /* ------------------------------------------------------------------ API */
-export function startRest(seconds, label = 'REST') {
+/** `next` names the exercise coming up, for the rest between two exercises. */
+export function startRest(seconds, next = '') {
   if (!seconds || seconds <= 0) return;
   if (!dock) build();
   state = {
@@ -112,7 +117,7 @@ export function startRest(seconds, label = 'REST') {
     remainingMs: seconds * 1000,
     endsAt: Date.now() + seconds * 1000,
     finished: false,
-    label
+    next
   };
   clearInterval(tick);
   tick = setInterval(loop, 200);
@@ -139,7 +144,7 @@ export function extend(seconds) {
   if (!dock) return;
   if (!state.running && !state.finished) return;
   if (state.finished) {
-    startRest(seconds);
+    startRest(seconds, state.next);
     return;
   }
   state.totalMs += seconds * 1000;

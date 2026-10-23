@@ -159,6 +159,8 @@ Export regularly.
 - [ ] Counts down, +30 / +60 extend, PAUSE and RESUME work, SKIP dismisses
 - [ ] At zero: vibration, tone, red state — and no browser dialog
 - [ ] Backgrounding the app and returning keeps the correct remaining time
+- [ ] Finishing the last set of an exercise starts a 2:00 rest showing NEXT · the next exercise
+- [ ] No rest after the first half of a superset (rest 0) or after the last exercise of the workout
 
 **Records**
 - [ ] Beating a previous top weight flags NEW PR on the row and shows a toast
@@ -213,6 +215,9 @@ Export regularly.
 ---
 
 ## Changelog
+
+**1.4.1**
+- Finishing the last set of an exercise starts a 2-minute rest before the next one, with the next exercise named under the timer. It is skipped after the last exercise of the workout and after the first half of a superset, and follows the Start automatically setting
 
 **1.4.0**
 - The Fat Loss Block is now a 4-day upper/lower split with optional cardio: Upper A (Saturday), Lower A (Sunday), Upper B (Tuesday), Lower B (Wednesday), optional outdoor cardio Monday and Thursday, full rest Friday
