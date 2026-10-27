@@ -22,7 +22,8 @@ import { startRest, stop as stopRest } from './resttimer.js';
 /* Rest after the last set of an exercise, before starting the next one. */
 const BETWEEN_EXERCISES_SEC = 120;
 
-let openLogId = null;
+let openLogId = null;      // null = every card collapsed
+let openSessionId = null;  // the session openLogId belongs to
 let clockTimer = null;
 
 export function renderWorkout(root, ctx, params) {
@@ -67,10 +68,12 @@ export function renderWorkout(root, ctx, params) {
     el('i', { style: `width:${totals.percent}%` })
   ]));
 
-  /* ---- default open card: first unfinished exercise ---- */
-  if (!openLogId || !session.logs.some((l) => l.id === openLogId)) {
+  /* ---- default open card on entering a session: first unfinished exercise.
+     After that, null means the lifter collapsed every card, so keep it. ---- */
+  if (openSessionId !== session.id || (openLogId && !session.logs.some((l) => l.id === openLogId))) {
     const next = session.logs.find((l) => !l.sets.every((s) => s.done));
     openLogId = next ? next.id : session.logs[0] && session.logs[0].id;
+    openSessionId = session.id;
   }
 
   const list = el('div', { class: 'stack' });
@@ -527,5 +530,6 @@ function cell(v, k) {
 
 export function resetWorkoutView() {
   openLogId = null;
+  openSessionId = null;
   clearInterval(clockTimer);
 }
