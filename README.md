@@ -216,6 +216,14 @@ Export regularly.
 
 ## Changelog
 
+**1.5.0**
+- Added the **Nov-Dec Program**: an 8-week block from Friday 6 Nov to Thursday 31 Dec 2026, weeks running Friday to Thursday. Lower A (Friday), Upper A (Saturday), optional hybrid Cindy or incline walk (Sunday), Lower B (Monday), Upper B (Tuesday), rest (Wednesday), Arms & Shoulders (Thursday), about 105 working sets a week
+- One superset only (EZ-bar curl + skull crusher); everything else is straight sets
+- Two unscheduled sessions, Full-Body A and B, for busy weeks: start them from Train → Choose a workout
+- The programme's notes carry the week-by-week plan: week 1 calibration, extra sets in weeks 5–7, the week-8 deload and the early-deload rule
+- It arrives as a draft on every device, so the Fat Loss Block stays active until you switch: Program → Nov-Dec Program → Make this my active programme
+- New built-in exercises: Machine Lateral Raise, Dumbbell Side Bend and Hybrid Cindy. They have no ExerciseDB match yet, so they show initials until More → Exercise images → Download finds one
+
 **1.4.2**
 - Tapping an open exercise collapses it again, so every card can be closed. Entering a workout still opens the first unfinished exercise
 

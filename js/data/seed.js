@@ -241,8 +241,131 @@ export function buildPTProgram() {
   };
 }
 
+
+/* ---------------------------------------------------------------------------
+   NOV-DEC PROGRAM — 8-week block, Friday 6 Nov to Thursday 31 Dec 2026
+   Weeks run Friday to Thursday: Lower A (Fri), Upper A (Sat), optional
+   conditioning (Sun), Lower B (Mon), Upper B (Tue), rest (Wed), Arms &
+   Shoulders (Thu), plus two unscheduled full-body sessions for busy weeks.
+   About 105 working sets a week.
+
+   Ids are fixed, as for the Fat Loss Block, so every device seeds the same
+   record and sync never sees a conflict.
+   ------------------------------------------------------------------------ */
+const NOV_DEC_DESCRIPTION = 'Fri 6 Nov – Thu 31 Dec 2026. Muscle gain in a calorie deficit, ~105 sets a week. Weeks run Friday to Thursday. '
+  + 'Week 1: stop 3 reps short on everything to find working weights. Weeks 2–4: target RIR. '
+  + 'Weeks 5–7: one extra set on Fri leg extension, Sat cable lateral raise, Mon lying leg curl, Tue pec deck, Thu hammer curl and rope pushdown. '
+  + 'Week 8 (25–31 Dec): deload, half the sets at the same loads, no Cindy; take it early if top-set reps fall on 2+ main lifts two sessions running. '
+  + 'Double progression: when every set hits the top of the range at the target RIR, add 2.5 kg (or the next dumbbell) and restart at the bottom of the range. '
+  + 'Missed day: do it on the next free day (Sun or Wed) and keep the order. Busy week: train Full-Body A and B instead. '
+  + 'Steps: 5,500/day weeks 1–4, 7,000/day weeks 5–8.';
+
+const ND_WARM_UP = 'Warm-up (~10 min): 5 min rower or treadmill walk, 2–3 min movement prep, '
+  + 'then ramp sets on the first lift only: 45% × 8, 65% × 5, 80% × 3, 90% × 1.';
+
+function ndDay(key, name, subtitle, dayOfWeek, estMinutes, notes, exercises) {
+  const d = day(name, subtitle, dayOfWeek, estMinutes, notes, exercises);
+  d.id = `day_nd_${key}`;
+  // Unscheduled fallback days stay disabled so the week reads as 7 days; they
+  // can still be started from Train → Choose a workout.
+  d.enabled = dayOfWeek !== null;
+  d.exercises.forEach((r, i) => { r.id = `rx_nd_${key}_${i + 1}`; });
+  return d;
+}
+
+const FALLBACK_NOTE = 'Only for a week when five sessions won\'t happen. Train A and B that week; same rep ranges and RIR as the main days. '
+  + 'A fallback week in weeks 5–7 counts as the deload.';
+
+export function buildNovDecProgram() {
+  const now = Date.now();
+  return {
+    id: uid('prog'),
+    seedId: 'nov-dec-program',
+    name: 'Nov-Dec Program',
+    description: NOV_DEC_DESCRIPTION,
+    status: 'draft',
+    createdAt: now,
+    updatedAt: now,
+    version: 1,
+    days: [
+      ndDay('lower_a', 'Lower A', 'Squat + hinge, heavy', 5, 65, ND_WARM_UP, [
+        rx('back_squat', [3], reps(5, 8), 180, { name: 'Back Squat (or Smith Squat)', notes: '2 RIR.' }),
+        rx('romanian_deadlift', [3], reps(8, 10), 150, { notes: '2 RIR.' }),
+        rx('leg_press', [3], reps(10, 12), 120, { notes: '1–2 RIR. Quad volume without more load on the back.' }),
+        rx('seated_leg_curl', [3], reps(10, 12), 90, { notes: '1 RIR.' }),
+        rx('leg_extension', [2], reps(12, 15), 90, { notes: '0–1 RIR. Weeks 5–7: 3 sets.' }),
+        rx('standing_calf_raise', [3], reps(8, 12), 90, { notes: '1 RIR. 1 s pause at the bottom.' }),
+        rx('machine_ab_crunch', [3], reps(10, 15), 60, { name: 'Machine Ab Crunch (or Weighted Decline Crunch)', notes: '0–1 RIR. Add load when all 3 sets reach 15.' })
+      ]),
+
+      ndDay('upper_a', 'Upper A', 'Chest & back, heavy', 6, 75, ND_WARM_UP, [
+        rx('incline_dumbbell_press', [3], reps(6, 8), 150, { notes: '2 RIR.' }),
+        rx('chest_supported_row', [4], reps(6, 8), 150, { notes: '2 RIR.' }),
+        rx('dumbbell_bench_press', [3], reps(8, 10), 120, { name: 'Flat Dumbbell or Machine Press', notes: '1–2 RIR.' }),
+        rx('lat_pulldown', [3], reps(8, 10), 120, { name: 'Lat Pulldown — Wide Grip', notes: '1–2 RIR.' }),
+        rx('cable_lateral_raise', [3], reps(12, 15), 60, { name: 'Cable Lateral Raise — One Arm', notes: '0–1 RIR. Weeks 5–7: 4 sets.' }),
+        rx('overhead_cable_extension', [3], reps(10, 12), 75, { name: 'Overhead Cable Triceps Extension', notes: '0–1 RIR.' }),
+        rx('incline_dumbbell_curl', [3], reps(10, 12), 75, { notes: '0–1 RIR.' })
+      ]),
+
+      ndDay('conditioning', 'Optional Conditioning', 'Hybrid Cindy or incline walk', 0, 40,
+        'Optional. Pick one and log only that one. Skip Cindy in the deload week.', [
+        rx('hybrid_cindy', [1], reps(10), 0, { load: 'none', name: 'Hybrid Cindy — rounds completed', notes: '20 min: alternate 1 min run and 1 min Cindy round (5 pull-ups, 10 push-ups, 15 air squats). Log full rounds completed out of 10. Stop every round 2+ reps short of failure so Tuesday\'s pulldowns don\'t suffer.' }),
+        rx('incline_treadmill_walk', [1], mins(40), 0, { load: 'none', notes: 'Or this instead of Cindy: 5.5 km/h at 10–12% grade, conversational pace.' })
+      ]),
+
+      ndDay('lower_b', 'Lower B', 'Machines + single-leg', 1, 60, ND_WARM_UP, [
+        rx('hack_squat', [3], reps(8, 12), 150, { name: 'Hack Squat (or Leg Press)', notes: '2 RIR.' }),
+        rx('hip_thrust', [3], reps(8, 12), 120, { name: 'Hip Thrust (or 45° Back Extension)', notes: '1–2 RIR.' }),
+        rx('bulgarian_split_squat', [2], reps(8, 12), 90, { notes: '1–2 RIR. Reps per leg.' }),
+        rx('lying_leg_curl', [3], reps(10, 12), 90, { notes: '0–1 RIR. Weeks 5–7: 4 sets.' }),
+        rx('seated_calf_raise', [3], reps(12, 15), 60, { notes: '0–1 RIR.' }),
+        rx('cable_crunch', [3], reps(10, 15), 60, { notes: '0–1 RIR.' }),
+        rx('farmers_carry', [3], metres(30), 90, { name: 'Farmer\'s Walk — Heavy Dumbbells', notes: 'Always last. Stop when posture slips.' })
+      ]),
+
+      ndDay('upper_b', 'Upper B', 'Back & chest, moderate', 2, 60, ND_WARM_UP, [
+        rx('close_grip_pulldown', [4], reps(6, 10), 150, { name: 'Neutral-Grip Lat Pulldown (V-Handle)', notes: '2 RIR.' }),
+        rx('machine_chest_press', [3], reps(8, 12), 120, { name: 'Machine Chest Press (or Dip)', notes: '1–2 RIR.' }),
+        rx('seated_cable_row', [3], reps(10, 12), 90, { name: 'Seated Cable Row — Neutral Grip', notes: '1 RIR.' }),
+        rx('pec_deck', [3], reps(12, 15), 60, { name: 'Pec Deck (or Cable Fly)', notes: '0–1 RIR. Weeks 5–7: 4 sets.' }),
+        rx('dumbbell_lateral_raise', [3], reps(12, 15), 60, { notes: '0–1 RIR.' }),
+        rx('face_pull', [3], reps(15, 20), 60, { notes: '0–1 RIR.' })
+      ]),
+
+      ndDay('rest', 'Rest', 'Steps only', 3, 0, 'Steps: 5,500 weeks 1–4, 7,000 weeks 5–8. A missed session moves here or to Sunday.', []),
+
+      ndDay('arms_shoulders', 'Arms & Shoulders', 'Delts, biceps, triceps, core', 4, 65, ND_WARM_UP, [
+        rx('machine_lateral_raise', [4], reps(12, 15), 60, { name: 'Machine Lateral Raise (or Cable Lean-Away)', notes: '0–1 RIR.' }),
+        rx('reverse_pec_deck', [3], reps(15, 20), 60, { name: 'Reverse Fly — Machine or Cable', notes: '0–1 RIR.' }),
+        rx('ez_bar_curl', [4], reps(8, 12), 0, { notes: 'Superset A1, 1 RIR. Go straight to the skull crusher.' }),
+        rx('skull_crusher', [4], reps(8, 12), 90, { name: 'EZ-Bar Skull Crusher', notes: 'Superset A2, 1 RIR. Rest 90 s after the pair.' }),
+        rx('hammer_curl', [3], reps(10, 12), 60, { notes: '0–1 RIR. Weeks 5–7: 4 sets.' }),
+        rx('cable_pushdown', [3], reps(10, 15), 60, { name: 'Rope Pushdown', notes: '0–1 RIR. Weeks 5–7: 4 sets.' }),
+        rx('dumbbell_side_bend', [3], reps(12, 15), 45, { name: 'Dumbbell Side Bend (or Weighted Side Plank)', notes: '1 RIR. Reps per side.' })
+      ]),
+
+      ndDay('fullbody_a', 'Full-Body A', 'Busy-week fallback', null, 45, FALLBACK_NOTE, [
+        rx('back_squat', [3], reps(5, 8), 180, { name: 'Back Squat (or Smith Squat)', notes: '2 RIR.' }),
+        rx('incline_dumbbell_press', [3], reps(6, 8), 150, { notes: '2 RIR.' }),
+        rx('chest_supported_row', [3], reps(6, 8), 150, { notes: '2 RIR.' }),
+        rx('cable_lateral_raise', [3], reps(12, 15), 60, { name: 'Cable Lateral Raise — One Arm', notes: '0–1 RIR.' })
+      ]),
+
+      ndDay('fullbody_b', 'Full-Body B', 'Busy-week fallback', null, 45, FALLBACK_NOTE, [
+        rx('romanian_deadlift', [3], reps(8, 10), 150, { notes: '2 RIR.' }),
+        rx('close_grip_pulldown', [3], reps(6, 10), 150, { name: 'Neutral-Grip Lat Pulldown (V-Handle)', notes: '2 RIR.' }),
+        rx('machine_chest_press', [3], reps(8, 12), 120, { name: 'Machine Chest Press (or Dip)', notes: '1–2 RIR.' }),
+        rx('ez_bar_curl', [2], reps(8, 12), 0, { notes: 'Superset A1, 1 RIR. Go straight to the skull crusher.' }),
+        rx('skull_crusher', [2], reps(8, 12), 90, { name: 'EZ-Bar Skull Crusher', notes: 'Superset A2, 1 RIR. Rest 90 s after the pair.' })
+      ])
+    ]
+  };
+}
+
 /** Everything the app seeds on first run, keyed by a stable seedId. */
 export const SEED_BUILDERS = [
   { seedId: 'fat-loss-block', build: buildSeedProgram },
-  { seedId: 'pt-program', build: buildPTProgram }
+  { seedId: 'pt-program', build: buildPTProgram },
+  { seedId: 'nov-dec-program', build: buildNovDecProgram }
 ];

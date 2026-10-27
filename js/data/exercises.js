@@ -71,6 +71,7 @@ const T = [
   ['machine_shoulder_press','Machine Shoulder Press','Shoulders','Machine','Front Delts','Triceps','Vertical Push','weight','reps','','Set the seat so the handles start at ear height.','67n3r98'],  // lever shoulder press
   ['dumbbell_lateral_raise','Dumbbell Lateral Raise','Shoulders','Dumbbell','Side Delts','Traps','Isolation','weight','reps','Lateral Raise,Side Raise','Light and slow. Lead with the elbow, stop at shoulder height.','DsgkuIt'],  // dumbbell lateral raise
   ['cable_lateral_raise','Cable Lateral Raise','Shoulders','Cable','Side Delts','Traps','Isolation','weight','reps','','One arm at a time. Constant tension through the whole range.','goJ6ezq'],  // cable lateral raise
+  ['machine_lateral_raise','Machine Lateral Raise','Shoulders','Machine','Side Delts','Traps','Isolation','weight','reps','Lateral Raise Machine,Cable Lean-Away','Pads on the forearms just above the elbow. Raise to shoulder height, lower for three seconds.'],
   ['rear_delt_fly','Dumbbell Rear Delt Fly','Shoulders','Dumbbell','Rear Delts','Mid Back','Isolation','weight','reps','Reverse Fly,Bent-Over Fly','Chest supported, light weight. The best thing here for a desk job.','8DiFDVA'],  // dumbbell rear fly
   ['reverse_pec_deck','Reverse Pec Deck','Shoulders','Machine','Rear Delts','Mid Back','Isolation','weight','reps','Machine Rear Delt','Wide grip, elbows soft, drive back with the rear delts.','myfUsKf'],  // lever seated reverse fly
   ['face_pull','Face Pull','Shoulders','Cable','Rear Delts','Mid Back,Traps','Horizontal Pull','weight','reps','Rope Face Pull','Rope to the forehead, elbows high, external rotation at the end.','wqNPGCg'],  // cable rear delt row (with rope)
@@ -140,6 +141,7 @@ const T = [
   ['ab_wheel','Ab Wheel Rollout','Core','Other','Abs','Lats,Core','Isolation','bodyweight','reps','Rollout','Ribs down. Go only as far as you can return from.','NAgVB3t'],  // wheel rollerout
   ['russian_twist','Russian Twist','Core','Dumbbell','Obliques','Abs','Isolation','weight','reps','','Rotate through the ribcage, not the arms.','XVDdcoj'],  // russian twist
   ['pallof_press','Pallof Press','Core','Cable','Obliques','Abs','Isolation','weight','reps,time','Anti-Rotation Press','Resist the rotation. Nothing should move but the arms.','9pa4H5m'],  // band horizontal pallof press
+  ['dumbbell_side_bend','Dumbbell Side Bend','Core','Dumbbell','Obliques','Core','Isolation','weight','reps','Side Bend','One dumbbell, free hand on the hip. Bend straight sideways, no twisting, and control the way up.'],
   ['crunch','Crunch','Core','Bodyweight','Abs','','Isolation','bodyweight','reps','Sit-Up','Curl, do not yank the neck.','TFqbd8t'],  // crunch floor
 
   // ── CARDIO ───────────────────────────────────────────────────────────────
@@ -160,6 +162,7 @@ const T = [
   ['kettlebell_swing','Kettlebell Swing','Full Body','Kettlebell','Glutes','Hamstrings,Core,Shoulders','Hinge','weight','reps,time','KB Swing','A hinge, not a squat. The arms are ropes.','UHJlbu3'],  // kettlebell swing
   ['thruster','Thruster','Full Body','Barbell','Quads','Shoulders,Triceps','Full Body','weight','reps','','Use the leg drive to start the press.','f7Y9eDZ'],  // barbell thruster
   ['burpee','Burpee','Full Body','Bodyweight','Full Body','Chest,Quads','Full Body','bodyweight','reps,time','','Chest to the floor, full stand at the top.','dK9394r'],  // burpee
+  ['hybrid_cindy','Hybrid Cindy','Full Body','Bodyweight','Full Body','Lats,Chest,Quads,Cardiovascular','Full Body','none','reps,time','Cindy','20 min: alternate 1 min run and 1 min Cindy round (5 pull-ups, 10 push-ups, 15 air squats). Stop each round 2+ reps short of failure.'],
   ['mountain_climber','Mountain Climber','Full Body','Bodyweight','Core','Shoulders,Hip Flexors','Full Body','bodyweight','time,reps','','Hips stay low. Do not bounce.','RJgzwny'],  // mountain climber
   ['battle_ropes','Battle Ropes','Full Body','Other','Shoulders','Core,Cardiovascular','Full Body','none','time','','Athletic stance, breathe on a rhythm.','RJa4tCo'],  // battling ropes
   ['box_jump','Box Jump','Full Body','Other','Quads','Glutes,Calves','Full Body','bodyweight','reps','','Step down every rep. Never rebound off a high box.']
