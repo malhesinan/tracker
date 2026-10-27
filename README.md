@@ -216,6 +216,9 @@ Export regularly.
 
 ## Changelog
 
+**1.4.2**
+- Tapping an open exercise collapses it again, so every card can be closed. Entering a workout still opens the first unfinished exercise
+
 **1.4.1**
 - Finishing the last set of an exercise starts a 2-minute rest before the next one, with the next exercise named under the timer. It is skipped after the last exercise of the workout and after the first half of a superset, and follows the Start automatically setting
 
