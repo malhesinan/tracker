@@ -216,6 +216,10 @@ Export regularly.
 
 ## Changelog
 
+**1.5.1**
+- The Nov-Dec Program now starts Friday 30 Oct and ends Thursday 24 Dec 2026 (deload 18–24 Dec). Week 1 only: Upper A on Friday 30 Oct and Lower A on Saturday 31 Oct
+- Devices that already have the programme get the new dates in its notes once on launch; days, exercises and logged sessions are not touched, and notes you have edited are left as they are
+
 **1.5.0**
 - Added the **Nov-Dec Program**: an 8-week block from Friday 6 Nov to Thursday 31 Dec 2026, weeks running Friday to Thursday. Lower A (Friday), Upper A (Saturday), optional hybrid Cindy or incline walk (Sunday), Lower B (Monday), Upper B (Tuesday), rest (Wednesday), Arms & Shoulders (Thursday), about 105 working sets a week
 - One superset only (EZ-bar curl + skull crusher); everything else is straight sets

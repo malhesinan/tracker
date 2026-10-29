@@ -7,7 +7,7 @@
 
 import { storage } from './storage.js';
 import { BUILTIN_EXERCISES } from './data/exercises.js';
-import { SEED_BUILDERS, UPPER_LOWER_REVISION, applyUpperLowerRevision } from './data/seed.js';
+import { SEED_BUILDERS, UPPER_LOWER_REVISION, applyUpperLowerRevision, NOV_DEC_REVISION, NOV_DEC_DESCRIPTION, NOV_DEC_DESCRIPTION_V1 } from './data/seed.js';
 import { uid, clone } from './util.js';
 import { plannedSetCount, defaultSetValues, setHasValue, setVolume, estimated1RM } from './prescription.js';
 import { APP } from './config.js';
@@ -36,6 +36,7 @@ export function initStore() {
   }
   applySeeds();
   applyProgramRevisions();
+  applyNovDecRevision();
   if (state.settings.firstRun) {
     state.settings.firstRun = false;
     storage.saveSettings(state.settings);
@@ -83,6 +84,21 @@ function applyProgramRevisions() {
   if (!program || (program.seedRevision || 1) >= UPPER_LOWER_REVISION) return;
   storage.makeBackup('before-upper-lower-update');
   applyUpperLowerRevision(program);
+  touch(program);
+  storage.savePrograms(state.programs);
+}
+
+/**
+ * The Nov-Dec Program's start moved to Fri 30 Oct in 1.5.1. Only its notes
+ * carry dates, so only the notes change, and only while they are still the
+ * 1.5.0 text: notes you have edited are left alone. Days and history are
+ * untouched.
+ */
+function applyNovDecRevision() {
+  const program = state.programs.find((p) => p.seedId === 'nov-dec-program');
+  if (!program || (program.seedRevision || 1) >= NOV_DEC_REVISION) return;
+  if (program.description === NOV_DEC_DESCRIPTION_V1) program.description = NOV_DEC_DESCRIPTION;
+  program.seedRevision = NOV_DEC_REVISION;
   touch(program);
   storage.savePrograms(state.programs);
 }

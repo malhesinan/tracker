@@ -243,7 +243,7 @@ export function buildPTProgram() {
 
 
 /* ---------------------------------------------------------------------------
-   NOV-DEC PROGRAM — 8-week block, Friday 6 Nov to Thursday 31 Dec 2026
+   NOV-DEC PROGRAM — 8-week block, Friday 30 Oct to Thursday 24 Dec 2026
    Weeks run Friday to Thursday: Lower A (Fri), Upper A (Sat), optional
    conditioning (Sun), Lower B (Mon), Upper B (Tue), rest (Wed), Arms &
    Shoulders (Thu), plus two unscheduled full-body sessions for busy weeks.
@@ -252,10 +252,25 @@ export function buildPTProgram() {
    Ids are fixed, as for the Fat Loss Block, so every device seeds the same
    record and sync never sees a conflict.
    ------------------------------------------------------------------------ */
-const NOV_DEC_DESCRIPTION = 'Fri 6 Nov – Thu 31 Dec 2026. Muscle gain in a calorie deficit, ~105 sets a week. Weeks run Friday to Thursday. '
+/* 1.5.1 moved the start from Fri 6 Nov to Fri 30 Oct. Only these notes carry
+   dates; a device seeded with the 1.5.0 text gets them updated once
+   (store.js, applyNovDecRevision). */
+export const NOV_DEC_REVISION = 2;
+
+export const NOV_DEC_DESCRIPTION_V1 = 'Fri 6 Nov – Thu 31 Dec 2026. Muscle gain in a calorie deficit, ~105 sets a week. Weeks run Friday to Thursday. '
   + 'Week 1: stop 3 reps short on everything to find working weights. Weeks 2–4: target RIR. '
   + 'Weeks 5–7: one extra set on Fri leg extension, Sat cable lateral raise, Mon lying leg curl, Tue pec deck, Thu hammer curl and rope pushdown. '
   + 'Week 8 (25–31 Dec): deload, half the sets at the same loads, no Cindy; take it early if top-set reps fall on 2+ main lifts two sessions running. '
+  + 'Double progression: when every set hits the top of the range at the target RIR, add 2.5 kg (or the next dumbbell) and restart at the bottom of the range. '
+  + 'Missed day: do it on the next free day (Sun or Wed) and keep the order. Busy week: train Full-Body A and B instead. '
+  + 'Steps: 5,500/day weeks 1–4, 7,000/day weeks 5–8.';
+
+
+export const NOV_DEC_DESCRIPTION = 'Fri 30 Oct – Thu 24 Dec 2026. Muscle gain in a calorie deficit, ~105 sets a week. Weeks run Friday to Thursday. '
+  + 'Week 1 only: Upper A on Fri 30 Oct and Lower A on Sat 31 Oct (legs were trained Wed 28 Oct); walk instead of Cindy on Sun 1 Nov. '
+  + 'Week 1: stop 3 reps short on everything to find working weights. Weeks 2–4: target RIR. '
+  + 'Weeks 5–7: one extra set on Fri leg extension, Sat cable lateral raise, Mon lying leg curl, Tue pec deck, Thu hammer curl and rope pushdown. '
+  + 'Week 8 (18–24 Dec): deload, half the sets at the same loads, no Cindy; take it early if top-set reps fall on 2+ main lifts two sessions running. '
   + 'Double progression: when every set hits the top of the range at the target RIR, add 2.5 kg (or the next dumbbell) and restart at the bottom of the range. '
   + 'Missed day: do it on the next free day (Sun or Wed) and keep the order. Busy week: train Full-Body A and B instead. '
   + 'Steps: 5,500/day weeks 1–4, 7,000/day weeks 5–8.';
@@ -281,6 +296,7 @@ export function buildNovDecProgram() {
   return {
     id: uid('prog'),
     seedId: 'nov-dec-program',
+    seedRevision: NOV_DEC_REVISION,
     name: 'Nov-Dec Program',
     description: NOV_DEC_DESCRIPTION,
     status: 'draft',
