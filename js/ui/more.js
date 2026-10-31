@@ -28,7 +28,7 @@ export function renderMore(root, ctx) {
   screen.appendChild(sectionHead('Training'));
 
   screen.appendChild(field('Units', segmented(
-    [{ label: 'KG', value: 'kg' }, { label: 'LB', value: 'lb' }],
+    [{ label: 'LB', value: 'lb' }, { label: 'KG', value: 'kg' }],
     s.units,
     (v) => { updateSettings({ units: v }); toast(`Units set to ${v.toUpperCase()}`); }
   ), 'Applies to new prescriptions and the weight steppers.'));

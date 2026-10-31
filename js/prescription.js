@@ -11,7 +11,7 @@
        target: { type: 'reps'|'time'|'distance'|'calories',
                  unit: null|'seconds'|'minutes'|'m'|'km',
                  min: 6, max: 8 },
-       load:   { type: 'weight'|'bodyweight'|'assisted'|'none', unit: 'kg'|'lb' },
+       load:   { type: 'weight'|'bodyweight'|'assisted'|'none', unit: 'lb'|'kg' },
        restSec: 150,
        tempo: null, rpe: null,
        equipmentOverride: null, cue: null, notes: null,
@@ -43,7 +43,7 @@ const UNIT_SHORT = { seconds: 's', minutes: 'min', m: 'm', km: 'km' };
 /* -------------------------------------------------------------------------
    Smart defaults — suggestions only, everything stays editable afterwards.
    ---------------------------------------------------------------------- */
-export function smartDefaults(exercise, units = 'kg') {
+export function smartDefaults(exercise, units = 'lb') {
   const pattern = exercise.movementPattern || '';
   const cat = exercise.category;
   const primaryTarget = (exercise.prescriptionTypes && exercise.prescriptionTypes[0]) || 'reps';
@@ -143,9 +143,9 @@ export function logFields(rx, settings) {
   const step = settings && settings.weightStep ? settings.weightStep : 2.5;
 
   if (rx.load.type === 'weight') {
-    fields.push({ key: 'weight', label: (rx.load.unit || 'kg').toUpperCase(), kind: 'weight', step, unit: rx.load.unit || 'kg', mode: 'number' });
+    fields.push({ key: 'weight', label: (rx.load.unit || 'lb').toUpperCase(), kind: 'weight', step, unit: rx.load.unit || 'lb', mode: 'number' });
   } else if (rx.load.type === 'assisted') {
-    fields.push({ key: 'weight', label: 'ASSIST', kind: 'weight', step, unit: rx.load.unit || 'kg', mode: 'number' });
+    fields.push({ key: 'weight', label: 'ASSIST', kind: 'weight', step, unit: rx.load.unit || 'lb', mode: 'number' });
   }
 
   const t = rx.target;
@@ -176,10 +176,10 @@ export function defaultSetValues(rx) {
   return v;
 }
 
-/** One-line summary of a logged set: "80 kg × 8", "20:00", "250 m". */
+/** One-line summary of a logged set: "175 lb × 8", "20:00", "250 m". */
 export function setLabel(set, rx) {
   const parts = [];
-  const unit = (rx && rx.load && rx.load.unit) || 'kg';
+  const unit = (rx && rx.load && rx.load.unit) || 'lb';
   if (set.weight !== null && set.weight !== undefined && set.weight !== '') {
     parts.push(`${num(set.weight)} ${rx && rx.load.type === 'assisted' ? '-' + unit : unit}`);
   }
@@ -198,7 +198,7 @@ export function setHasValue(set) {
     .some((k) => set[k] !== null && set[k] !== undefined && set[k] !== '' && Number(set[k]) !== 0);
 }
 
-/** Volume in kg (or lb) for a single set. Only weight × reps counts. */
+/** Volume in lb (or kg) for a single set. Only weight × reps counts. */
 export function setVolume(set) {
   const w = Number(set.weight);
   const r = Number(set.reps);

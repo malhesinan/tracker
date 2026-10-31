@@ -7,7 +7,7 @@ import { el, esc, mmss } from '../util.js';
 import { WEEKDAYS } from '../config.js';
 import {
   getActiveProgram, todaysDay, todaysSession, getActiveSession,
-  startSession, getPrograms, getExercise
+  startSession, getPrograms, getExercise, getSettings
 } from '../store.js';
 import { prescriptionLabel } from '../prescription.js';
 import { sessionTotals } from '../stats.js';
@@ -145,7 +145,7 @@ function heroInProgress(session, ctx) {
   wrap.appendChild(el('div', { class: 'metrics' }, [
     metric(String(totals.sets), 'Sets done'),
     metric(String(totals.minutes), 'Minutes'),
-    metric(totals.volume ? `${Math.round(totals.volume / 1000)}k` : '0', 'Volume kg')
+    metric(totals.volume ? `${Math.round(totals.volume / 1000)}k` : '0', `Volume ${getSettings().units === 'kg' ? 'kg' : 'lb'}`)
   ]));
 
   return wrap;

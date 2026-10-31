@@ -216,6 +216,11 @@ Export regularly.
 
 ## Changelog
 
+**1.6.0**
+- Pounds are now the default weight unit everywhere: new prescriptions, the weight fields while logging, set summaries, the Train screen's volume and CSV export. More → Settings → Units still switches to KG
+- Weights already logged were entered in pounds, so on first launch every existing programme and session is relabelled from kg to lb with the numbers unchanged (a backup is taken first). The progression note in the Nov-Dec Program now reads "add 5 lb"
+- The default weight step for new installs is 5
+
 **1.5.1**
 - The Nov-Dec Program now starts Friday 30 Oct and ends Thursday 24 Dec 2026 (deload 18–24 Dec). Week 1 only: Upper A on Friday 30 Oct and Lower A on Saturday 31 Oct
 - Devices that already have the programme get the new dates in its notes once on launch; days, exercises and logged sessions are not touched, and notes you have edited are left as they are

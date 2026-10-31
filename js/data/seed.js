@@ -16,7 +16,7 @@ function rx(exerciseId, sets, target, restSec, extra = {}) {
     displayName: extra.name || null,
     sets: { min: sets[0], max: sets[1] === undefined ? sets[0] : sets[1] },
     target,
-    load: { type: extra.load || 'weight', unit: 'kg' },
+    load: { type: extra.load || 'weight', unit: 'lb' },
     restSec,
     tempo: extra.tempo || null,
     rpe: extra.rpe || null,
@@ -271,7 +271,7 @@ export const NOV_DEC_DESCRIPTION = 'Fri 30 Oct – Thu 24 Dec 2026. Muscle gain 
   + 'Week 1: stop 3 reps short on everything to find working weights. Weeks 2–4: target RIR. '
   + 'Weeks 5–7: one extra set on Fri leg extension, Sat cable lateral raise, Mon lying leg curl, Tue pec deck, Thu hammer curl and rope pushdown. '
   + 'Week 8 (18–24 Dec): deload, half the sets at the same loads, no Cindy; take it early if top-set reps fall on 2+ main lifts two sessions running. '
-  + 'Double progression: when every set hits the top of the range at the target RIR, add 2.5 kg (or the next dumbbell) and restart at the bottom of the range. '
+  + 'Double progression: when every set hits the top of the range at the target RIR, add 5 lb (or the next dumbbell) and restart at the bottom of the range. '
   + 'Missed day: do it on the next free day (Sun or Wed) and keep the order. Busy week: train Full-Body A and B instead. '
   + 'Steps: 5,500/day weeks 1–4, 7,000/day weeks 5–8.';
 

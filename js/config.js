@@ -7,7 +7,7 @@ export const APP = {
   name: 'Workout Tracker',
   shortName: 'Workout',
   tagline: 'Training log',
-  version: '1.5.1',
+  version: '1.6.0',
   schemaVersion: 4
 };
 
@@ -77,8 +77,8 @@ export const CLOUD = {
 };
 
 export const DEFAULT_SETTINGS = {
-  units: 'kg',                 // kg | lb
-  weightStep: 2.5,             // stepper increment
+  units: 'lb',                 // lb | kg
+  weightStep: 5,               // stepper increment
   repStep: 1,
   distanceUnit: 'm',           // m | km
   restAutoStart: true,

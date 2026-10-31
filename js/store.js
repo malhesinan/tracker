@@ -37,6 +37,7 @@ export function initStore() {
   applySeeds();
   applyProgramRevisions();
   applyNovDecRevision();
+  applyPoundsDefault();
   if (state.settings.firstRun) {
     state.settings.firstRun = false;
     storage.saveSettings(state.settings);
@@ -101,6 +102,45 @@ function applyNovDecRevision() {
   program.seedRevision = NOV_DEC_REVISION;
   touch(program);
   storage.savePrograms(state.programs);
+}
+
+/**
+ * 1.6.0 makes pounds the default. Every weight ever entered was already in
+ * pounds, only labelled kg, so the numbers stay exactly as they are: this
+ * just relabels them. Runs once per device (meta.poundsDefault). A backup is
+ * taken first (More → Data → Restore last backup).
+ */
+const KG_NOTE = 'add 2.5 kg (or the next dumbbell)';
+const LB_NOTE = 'add 5 lb (or the next dumbbell)';
+
+function applyPoundsDefault() {
+  if (state.meta.poundsDefault) return;
+  if (state.sessions.length) storage.makeBackup('before-pounds-default');
+
+  const relabel = (rx) => {
+    if (rx && rx.load && rx.load.unit === 'kg') { rx.load.unit = 'lb'; return true; }
+    return false;
+  };
+
+  state.programs.forEach((program) => {
+    let changed = false;
+    (program.days || []).forEach((d) => (d.exercises || []).forEach((rx) => { if (relabel(rx)) changed = true; }));
+    if (typeof program.description === 'string' && program.description.includes(KG_NOTE)) {
+      program.description = program.description.split(KG_NOTE).join(LB_NOTE);
+      changed = true;
+    }
+    if (changed) touch(program);
+  });
+  storage.savePrograms(state.programs);
+
+  state.sessions.forEach((s) => (s.logs || []).forEach((log) => relabel(log.prescription)));
+  storage.saveSessions(state.sessions);
+
+  state.settings.units = 'lb';
+  storage.saveSettings(state.settings);
+
+  state.meta = { ...state.meta, poundsDefault: true };
+  storage.saveMeta(state.meta);
 }
 
 export function reloadFromStorage() {
